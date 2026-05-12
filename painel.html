@@ -2951,33 +2951,75 @@ document.querySelectorAll('#prioGroup .priority-opt').forEach(p => {
   });
 });
 
-document.getElementById('saveNew').addEventListener('click', () => {
+document.getElementById('saveNew').addEventListener('click', async () => {
   const title = document.getElementById('newTitle').value.trim();
   if (!title) {
     document.getElementById('newTitle').focus();
     return;
   }
-  const type = document.getElementById('newType').value;
-  const prefix = type === 'os' ? 'OS' : type === 'task' ? 'TF' : 'PV';
-  const newId = `${prefix}-${String(Math.floor(Math.random()*9000)+1000)}`;
-  const dlInput = document.getElementById('newDeadline').value;
+  const btn = document.getElementById('saveNew');
+  const originalLabel = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Salvando...';
 
-  orders.unshift({
-    id: newId, type, title,
-    priority: selPrio, status: 'open',
-    local: document.getElementById('newLocal').value || 'A definir',
-    assignee: document.getElementById('newAssign').value,
-    deadline: dlInput ? new Date(dlInput) : new Date(Date.now() + 24*60*60*1000),
-    desc: document.getElementById('newDesc').value || '—',
-    timeline: [{ time: 'Agora', text: 'Demanda criada por Miguel K.' }],
-    comments: []
-  });
+  const type = document.getElementById('newType').value;
+  const dlInput = document.getElementById('newDeadline').value;
+  const deadline = dlInput ? new Date(dlInput) : new Date(Date.now() + 24*60*60*1000);
+  const local = document.getElementById('newLocal').value || 'A definir';
+  const assignee = document.getElementById('newAssign').value;
+  const desc = document.getElementById('newDesc').value || '—';
+
+  // Conversões para o formato do Firestore (collection `chamados`)
+  const prioMap = { crit: 'Urgente', high: 'Alta', med: 'Normal', low: 'Normal' };
+  const prioridade = prioMap[selPrio] || 'Normal';
+
+  const now = new Date();
+  const dd = String(now.getDate()).padStart(2, '0');
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const yyyy = now.getFullYear();
+  const dataAbertura = `${dd}/${mm}/${yyyy}`;
+  const horaAbertura = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+  const ddD = String(deadline.getDate()).padStart(2, '0');
+  const mmD = String(deadline.getMonth() + 1).padStart(2, '0');
+  const yyyyD = deadline.getFullYear();
+  const dataConclusao = `${ddD}/${mmD}/${yyyyD}`;
+
+  try {
+    await addDoc(collection(db, 'chamados'), {
+      titulo: title,
+      descricao: desc,
+      setor: local,
+      solicitante: assignee || 'Miguel K.',
+      prioridade: prioridade,
+      status: 'aberto',
+      origem: 'painel',
+      dataAbertura: dataAbertura,
+      horaAbertura: horaAbertura,
+      dataConclusao: dataConclusao,
+      historico: [{
+        data: dataAbertura,
+        hora: horaAbertura,
+        acao: 'Demanda criada pelo painel',
+        obs: ''
+      }],
+      fotos: []
+    });
+    // O onSnapshot vai sincronizar automaticamente e chamar render()
+  } catch (err) {
+    console.error('Erro ao salvar nova demanda:', err);
+    alert('Erro ao salvar no Firebase. Tenta de novo.');
+    btn.disabled = false;
+    btn.textContent = originalLabel;
+    return;
+  }
 
   document.getElementById('newTitle').value = '';
   document.getElementById('newLocal').value = '';
   document.getElementById('newDesc').value = '';
   modalNew.classList.remove('open');
-  render();
+  btn.disabled = false;
+  btn.textContent = originalLabel;
 });
 
 const modalDetail = document.getElementById('modalDetail');
