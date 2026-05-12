@@ -2977,7 +2977,9 @@ document.getElementById('saveNew').addEventListener('click', async () => {
   const mm = String(now.getMonth() + 1).padStart(2, '0');
   const yyyy = now.getFullYear();
   const dataAbertura = `${dd}/${mm}/${yyyy}`;
-  const horaAbertura = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  // Hora fixa em 00:00 para o deadline aparecer limpo na agenda.
+  // (A hora real da criação fica no histórico/timeline.)
+  const horaAbertura = '00:00';
 
   // Parse manual do datetime-local para evitar bug de timezone.
   // Input vem como "YYYY-MM-DDTHH:MM" (ou só "YYYY-MM-DD"). Se fizer new Date()
