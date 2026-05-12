@@ -2964,7 +2964,6 @@ document.getElementById('saveNew').addEventListener('click', async () => {
 
   const type = document.getElementById('newType').value;
   const dlInput = document.getElementById('newDeadline').value;
-  const deadline = dlInput ? new Date(dlInput) : new Date(Date.now() + 24*60*60*1000);
   const local = document.getElementById('newLocal').value || 'A definir';
   const assignee = document.getElementById('newAssign').value;
   const desc = document.getElementById('newDesc').value || '—';
@@ -2980,10 +2979,23 @@ document.getElementById('saveNew').addEventListener('click', async () => {
   const dataAbertura = `${dd}/${mm}/${yyyy}`;
   const horaAbertura = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
 
-  const ddD = String(deadline.getDate()).padStart(2, '0');
-  const mmD = String(deadline.getMonth() + 1).padStart(2, '0');
-  const yyyyD = deadline.getFullYear();
-  const dataConclusao = `${ddD}/${mmD}/${yyyyD}`;
+  // Parse manual do datetime-local para evitar bug de timezone.
+  // Input vem como "YYYY-MM-DDTHH:MM" (ou só "YYYY-MM-DD"). Se fizer new Date()
+  // direto, o JS pode interpretar como UTC e jogar o dia pra trás no fuso BR.
+  let dataConclusao;
+  if (dlInput) {
+    // Pega só a parte da data, ignorando hora se vier
+    const dataParte = dlInput.split('T')[0]; // "2026-05-12"
+    const [yyyyD, mmD, ddD] = dataParte.split('-');
+    dataConclusao = `${ddD}/${mmD}/${yyyyD}`;
+  } else {
+    // Default: 1 dia a partir de agora
+    const def = new Date(Date.now() + 24*60*60*1000);
+    const ddD = String(def.getDate()).padStart(2, '0');
+    const mmD = String(def.getMonth() + 1).padStart(2, '0');
+    const yyyyD = def.getFullYear();
+    dataConclusao = `${ddD}/${mmD}/${yyyyD}`;
+  }
 
   try {
     await addDoc(collection(db, 'chamados'), {
@@ -3610,7 +3622,13 @@ function parseDataBR(dataStr) {
   if (!dataStr) return null;
   const parts = dataStr.split('/');
   if (parts.length !== 3) return null;
-  return new Date(parts[2] + '-' + parts[1] + '-' + parts[0]);
+  // Constrói no fuso LOCAL (não UTC) para evitar shift de dia em fusos negativos.
+  // new Date("2026-05-12") seria interpretado como UTC -> 11/05 21:00 em BRT.
+  const dia = parseInt(parts[0], 10);
+  const mes = parseInt(parts[1], 10) - 1; // mês é 0-indexado
+  const ano = parseInt(parts[2], 10);
+  if (isNaN(dia) || isNaN(mes) || isNaN(ano)) return null;
+  return new Date(ano, mes, dia);
 }
 
 function fbToOrder(doc) {
