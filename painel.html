@@ -2219,8 +2219,18 @@ body.agenda-mode .kanban-view { display: none; }
           </select>
         </div>
         <div class="field">
-          <label class="field-label">Local</label>
-          <input type="text" id="newLocal" placeholder="Bloco / Sala">
+          <label class="field-label">Setor</label>
+          <select id="newLocal">
+            <option value="PREDIAL">PREDIAL</option>
+            <option value="PANIFICAÇÃO">PANIFICAÇÃO</option>
+            <option value="CONFEITARIA">CONFEITARIA</option>
+            <option value="COZINHA/REFEITÓRIO">COZINHA/REFEITÓRIO</option>
+            <option value="EMBALAÇÃO">EMBALAÇÃO</option>
+            <option value="Frota">Frota</option>
+            <option value="Diretoria">Diretoria</option>
+            <option value="Projetos">Projetos</option>
+            <option value="Tarefas Miguel">Tarefas Miguel</option>
+          </select>
         </div>
       </div>
       <div class="field">
@@ -3029,7 +3039,7 @@ document.getElementById('saveNew').addEventListener('click', async () => {
   }
 
   document.getElementById('newTitle').value = '';
-  document.getElementById('newLocal').value = '';
+  document.getElementById('newLocal').selectedIndex = 0;
   document.getElementById('newDesc').value = '';
   modalNew.classList.remove('open');
   btn.disabled = false;
