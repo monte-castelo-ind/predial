@@ -1853,104 +1853,6 @@ body.agenda-mode .kanban-view { display: none; }
 .setor-input-wrap {
   display: flex;
   gap: 6px;
-/* Botão "Alterar" da descrição e prioridade — mesmo visual do setor */
-.desc-edit-btn,
-.priority-edit-btn {
-  padding: 4px 10px;
-  background: transparent;
-  border: 1px solid var(--line-2);
-  color: var(--ink-mute);
-  font-family: var(--mono);
-  font-size: 9px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.desc-edit-btn:hover,
-.priority-edit-btn:hover {
-  border-color: var(--ink);
-  color: var(--ink);
-}
-
-.detail-label-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-}
-.detail-label-row .detail-label {
-  margin-bottom: 0;
-}
-
-/* Textarea da descrição */
-.desc-input {
-  width: 100%;
-  padding: 10px 12px;
-  background: var(--bg-2);
-  border: 1px solid var(--line-2);
-  color: var(--ink);
-  font-family: inherit;
-  font-size: 13px;
-  line-height: 1.5;
-  resize: vertical;
-  min-height: 80px;
-}
-.desc-input:focus {
-  outline: none;
-  border-color: var(--gold);
-}
-.desc-save-btn,
-.desc-cancel-btn {
-  padding: 8px 16px;
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.desc-save-btn {
-  background: var(--gold);
-  border: 1px solid var(--gold);
-  color: var(--bg);
-}
-.desc-save-btn:hover { opacity: 0.85; }
-.desc-cancel-btn {
-  background: transparent;
-  border: 1px solid var(--line-2);
-  color: var(--ink-mute);
-}
-.desc-cancel-btn:hover { border-color: var(--ink); color: var(--ink); }
-
-/* Botões de opção de prioridade */
-.priority-opt-btn {
-  padding: 6px 12px;
-  background: var(--bg-2);
-  border: 1px solid var(--line-2);
-  color: var(--ink);
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.15em;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.priority-opt-btn:hover {
-  border-color: var(--gold);
-  background: rgba(196, 149, 106, 0.08);
-}
-.priority-cancel-btn {
-  padding: 6px 12px;
-  background: transparent;
-  border: 1px solid var(--line-2);
-  color: var(--ink-mute);
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.15em;
-  cursor: pointer;
-}
-.priority-cancel-btn:hover { border-color: var(--ink); color: var(--ink); }
-  
 }
 .setor-select {
   flex: 1;
@@ -2638,110 +2540,15 @@ async function savePrazo(orderId, valor) {
 
 
 
-// === EDITOR DE DESCRIÇÃO ===
-function bindDescEditor(orderId) {
+// === EDITOR DE SETOR ===
+function bindSetorEditor(orderId) {
   const safeId = orderId.replace(/[^a-zA-Z0-9]/g, '_');
-  const editBtn = document.querySelector('[data-edit-desc="' + orderId + '"]');
-  const saveBtn = document.querySelector('[data-save-desc="' + orderId + '"]');
-  const cancelBtn = document.querySelector('[data-cancel-desc="' + orderId + '"]');
-  const input = document.querySelector('[data-desc-input="' + orderId + '"]');
-  const viewBlock = document.getElementById('descView_' + safeId);
-  const editBlock = document.getElementById('descEdit_' + safeId);
-  const editBtnHeader = document.getElementById('descEditBtn_' + safeId);
-  if (!editBtn || !saveBtn || !input) return;
-
-  editBtn.onclick = () => {
-    viewBlock.style.display = 'none';
-    editBlock.style.display = 'block';
-    editBtnHeader.style.display = 'none';
-    input.focus();
-  };
-
-  cancelBtn.onclick = () => {
-    const o = orders.find(x => x.id === orderId);
-    input.value = o ? (o.desc || '') : '';
-    viewBlock.style.display = 'block';
-    editBlock.style.display = 'none';
-    editBtnHeader.style.display = '';
-  };
-
-  saveBtn.onclick = async () => {
-    const o = orders.find(x => x.id === orderId);
-    if (!o) return;
-    const novaDesc = input.value.trim();
-    if (novaDesc === (o.desc || '').trim()) {
-      cancelBtn.onclick();
-      return;
-    }
-    const oldDesc = o.desc || '(vazia)';
-    o.desc = novaDesc;
-    o.timeline.push({
-      time: 'Agora',
-      text: 'Descrição alterada'
-    });
-    if (o.fromFirebase && o.firestoreId) {
-      try {
-        await updateDoc(doc(db, 'chamados', o.firestoreId), { descricao: novaDesc });
-      } catch (err) {
-        console.error('Erro ao salvar descrição no Firebase:', err);
-      }
-    }
-    openDetail(orderId);
-    render();
-    if (document.body.classList.contains('kanban-mode')) renderKanban();
-    if (document.body.classList.contains('agenda-mode')) renderAgenda();
-  };
-}
-
-// === EDITOR DE PRIORIDADE ===
-function bindPriorityEditor(orderId) {
-  const safeId = orderId.replace(/[^a-zA-Z0-9]/g, '_');
-  const editBtn = document.querySelector('[data-edit-priority="' + orderId + '"]');
-  const cancelBtn = document.querySelector('[data-cancel-priority="' + orderId + '"]');
-  const optBtns = document.querySelectorAll('[data-priority-opt="' + orderId + '"]');
-  const viewBlock = document.getElementById('priorityView_' + safeId);
-  const editBlock = document.getElementById('priorityEdit_' + safeId);
-  if (!editBtn || !optBtns.length) return;
-
-  editBtn.onclick = () => {
-    viewBlock.style.display = 'none';
-    editBlock.style.display = 'flex';
-  };
-
-  cancelBtn.onclick = () => {
-    viewBlock.style.display = 'flex';
-    editBlock.style.display = 'none';
-  };
-
-  optBtns.forEach(btn => {
-    btn.onclick = async () => {
-      const o = orders.find(x => x.id === orderId);
-      if (!o) return;
-      const novaPrioridade = btn.dataset.priority;
-      if (novaPrioridade === o.priority) {
-        cancelBtn.onclick();
-        return;
-      }
-      const oldLabel = priorityLabel(o.priority);
-      o.priority = novaPrioridade;
-      o.timeline.push({
-        time: 'Agora',
-        text: 'Prioridade alterada de "' + oldLabel + '" para "' + priorityLabel(novaPrioridade) + '"'
-      });
-      if (o.fromFirebase && o.firestoreId) {
-        try {
-          await updateDoc(doc(db, 'chamados', o.firestoreId), { prioridade: novaPrioridade });
-        } catch (err) {
-          console.error('Erro ao salvar prioridade no Firebase:', err);
-        }
-      }
-      openDetail(orderId);
-      render();
-      if (document.body.classList.contains('kanban-mode')) renderKanban();
-      if (document.body.classList.contains('agenda-mode')) renderAgenda();
-    };
-  });
-}
+  const editBtn = document.querySelector('[data-edit-setor="' + orderId + '"]');
+  const saveBtn = document.querySelector('[data-save-setor="' + orderId + '"]');
+  const select = document.querySelector('[data-setor-select="' + orderId + '"]');
+  const customInput = document.querySelector('[data-setor-custom="' + orderId + '"]');
+  const viewBlock = document.getElementById('setorView_' + safeId);
+  const editBlock = document.getElementById('setorEdit_' + safeId);
 
   if (!editBtn || !saveBtn || !select) return;
 
@@ -3257,20 +3064,7 @@ function openDetail(id) {
       <button class="modal-close" data-close>✕</button>
     </div>
     <div class="modal-body">
-      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom: 4px; align-items:center;">
-  <div class="priority-current" id="priorityView_${o.id.replace(/[^a-zA-Z0-9]/g,'_')}" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-    <span class="priority-tag ${cls}" style="font-family:var(--mono); font-size:10px; letter-spacing:0.2em;">${o.status === 'done' ? 'CONCLUÍDA' : o.status === 'waiting_part' ? 'AGUARDA PEÇA' : o.status === 'waiting_auth' ? 'AGUARDA AUTORIZAÇÃO' : o.status === 'paused' ? 'PAUSADA' : priorityLabel(o.priority)}</span>
-    <span style="padding: 2px 8px; background: var(--bg-2); border: 1px solid var(--line-2); font-family: var(--mono); font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: ${o.status==='progress' ? 'var(--orange)' : 'var(--ink-mute)'};">${statusLabel(o.status)}</span>
-    ${o.status !== 'done' ? `<button class="priority-edit-btn" data-edit-priority="${o.id}">Alterar prioridade</button>` : ''}
-  </div>
-  <div class="priority-edit" id="priorityEdit_${o.id.replace(/[^a-zA-Z0-9]/g,'_')}" style="display:none; gap:6px; flex-wrap:wrap; align-items:center;">
-    <button class="priority-opt-btn" data-priority-opt="${o.id}" data-priority="urgente">🔴 Urgente</button>
-    <button class="priority-opt-btn" data-priority-opt="${o.id}" data-priority="alta">🟠 Alta</button>
-    <button class="priority-opt-btn" data-priority-opt="${o.id}" data-priority="media">🟡 Média</button>
-    <button class="priority-opt-btn" data-priority-opt="${o.id}" data-priority="baixa">⚪ Baixa</button>
-    <button class="priority-cancel-btn" data-cancel-priority="${o.id}">Cancelar</button>
-  </div>
-</div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom: 4px;">
         <span class="priority-tag ${cls}" style="font-family:var(--mono); font-size:10px; letter-spacing:0.2em;">${o.status === 'done' ? 'CONCLUÍDA' : o.status === 'waiting_part' ? 'AGUARDA PEÇA' : o.status === 'waiting_auth' ? 'AGUARDA AUTORIZAÇÃO' : o.status === 'paused' ? 'PAUSADA' : priorityLabel(o.priority)}</span>
         <span style="padding: 2px 8px; background: var(--bg-2); border: 1px solid var(--line-2); font-family: var(--mono); font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: ${o.status==='progress' ? 'var(--orange)' : 'var(--ink-mute)'};">${statusLabel(o.status)}</span>
       </div>
@@ -3346,22 +3140,10 @@ function openDetail(id) {
         </div>
       </div>
 
-  <div class="detail-section">
-  <div class="detail-label-row">
-    <div class="detail-label">Descrição</div>
-    <button class="desc-edit-btn" data-edit-desc="${o.id}" id="descEditBtn_${o.id.replace(/[^a-zA-Z0-9]/g,'_')}">Alterar</button>
-  </div>
-  <div class="desc-current" id="descView_${o.id.replace(/[^a-zA-Z0-9]/g,'_')}">
-    <div class="detail-value" style="white-space: pre-wrap;">${o.desc || '<span style="color:var(--ink-mute); font-style:italic;">Sem descrição</span>'}</div>
-  </div>
-  <div class="desc-edit" id="descEdit_${o.id.replace(/[^a-zA-Z0-9]/g,'_')}" style="display:none;">
-    <textarea class="desc-input" data-desc-input="${o.id}" rows="4" placeholder="Descreva o chamado...">${o.desc || ''}</textarea>
-    <div style="display:flex; gap:8px; margin-top:8px;">
-      <button class="desc-save-btn" data-save-desc="${o.id}">OK</button>
-      <button class="desc-cancel-btn" data-cancel-desc="${o.id}">Cancelar</button>
-    </div>
-  </div>
-</div>
+      <div class="detail-section">
+        <div class="detail-label">Descrição</div>
+        <div class="detail-value" style="white-space: pre-wrap;">${o.desc}</div>
+      </div>
 
       ${o.checklist && o.checklist.length ? `
       <div class="detail-section">
@@ -3494,8 +3276,8 @@ function openDetail(id) {
   // Bind editor de prazo
   bindPrazoEditor(o.id);
 
-bindDescEditor(o.id);
-bindPriorityEditor(o.id);
+  // Bind editor de setor
+  bindSetorEditor(o.id);
 
   // Renderizar fotos
   renderFotosPainel(o.id);
