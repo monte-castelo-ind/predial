@@ -2638,15 +2638,110 @@ async function savePrazo(orderId, valor) {
 
 
 
-// === EDITOR DE SETOR ===
-function bindSetorEditor(orderId) {
+// === EDITOR DE DESCRIÇÃO ===
+function bindDescEditor(orderId) {
   const safeId = orderId.replace(/[^a-zA-Z0-9]/g, '_');
-  const editBtn = document.querySelector('[data-edit-setor="' + orderId + '"]');
-  const saveBtn = document.querySelector('[data-save-setor="' + orderId + '"]');
-  const select = document.querySelector('[data-setor-select="' + orderId + '"]');
-  const customInput = document.querySelector('[data-setor-custom="' + orderId + '"]');
-  const viewBlock = document.getElementById('setorView_' + safeId);
-  const editBlock = document.getElementById('setorEdit_' + safeId);
+  const editBtn = document.querySelector('[data-edit-desc="' + orderId + '"]');
+  const saveBtn = document.querySelector('[data-save-desc="' + orderId + '"]');
+  const cancelBtn = document.querySelector('[data-cancel-desc="' + orderId + '"]');
+  const input = document.querySelector('[data-desc-input="' + orderId + '"]');
+  const viewBlock = document.getElementById('descView_' + safeId);
+  const editBlock = document.getElementById('descEdit_' + safeId);
+  const editBtnHeader = document.getElementById('descEditBtn_' + safeId);
+  if (!editBtn || !saveBtn || !input) return;
+
+  editBtn.onclick = () => {
+    viewBlock.style.display = 'none';
+    editBlock.style.display = 'block';
+    editBtnHeader.style.display = 'none';
+    input.focus();
+  };
+
+  cancelBtn.onclick = () => {
+    const o = orders.find(x => x.id === orderId);
+    input.value = o ? (o.desc || '') : '';
+    viewBlock.style.display = 'block';
+    editBlock.style.display = 'none';
+    editBtnHeader.style.display = '';
+  };
+
+  saveBtn.onclick = async () => {
+    const o = orders.find(x => x.id === orderId);
+    if (!o) return;
+    const novaDesc = input.value.trim();
+    if (novaDesc === (o.desc || '').trim()) {
+      cancelBtn.onclick();
+      return;
+    }
+    const oldDesc = o.desc || '(vazia)';
+    o.desc = novaDesc;
+    o.timeline.push({
+      time: 'Agora',
+      text: 'Descrição alterada'
+    });
+    if (o.fromFirebase && o.firestoreId) {
+      try {
+        await updateDoc(doc(db, 'chamados', o.firestoreId), { descricao: novaDesc });
+      } catch (err) {
+        console.error('Erro ao salvar descrição no Firebase:', err);
+      }
+    }
+    openDetail(orderId);
+    render();
+    if (document.body.classList.contains('kanban-mode')) renderKanban();
+    if (document.body.classList.contains('agenda-mode')) renderAgenda();
+  };
+}
+
+// === EDITOR DE PRIORIDADE ===
+function bindPriorityEditor(orderId) {
+  const safeId = orderId.replace(/[^a-zA-Z0-9]/g, '_');
+  const editBtn = document.querySelector('[data-edit-priority="' + orderId + '"]');
+  const cancelBtn = document.querySelector('[data-cancel-priority="' + orderId + '"]');
+  const optBtns = document.querySelectorAll('[data-priority-opt="' + orderId + '"]');
+  const viewBlock = document.getElementById('priorityView_' + safeId);
+  const editBlock = document.getElementById('priorityEdit_' + safeId);
+  if (!editBtn || !optBtns.length) return;
+
+  editBtn.onclick = () => {
+    viewBlock.style.display = 'none';
+    editBlock.style.display = 'flex';
+  };
+
+  cancelBtn.onclick = () => {
+    viewBlock.style.display = 'flex';
+    editBlock.style.display = 'none';
+  };
+
+  optBtns.forEach(btn => {
+    btn.onclick = async () => {
+      const o = orders.find(x => x.id === orderId);
+      if (!o) return;
+      const novaPrioridade = btn.dataset.priority;
+      if (novaPrioridade === o.priority) {
+        cancelBtn.onclick();
+        return;
+      }
+      const oldLabel = priorityLabel(o.priority);
+      o.priority = novaPrioridade;
+      o.timeline.push({
+        time: 'Agora',
+        text: 'Prioridade alterada de "' + oldLabel + '" para "' + priorityLabel(novaPrioridade) + '"'
+      });
+      if (o.fromFirebase && o.firestoreId) {
+        try {
+          await updateDoc(doc(db, 'chamados', o.firestoreId), { prioridade: novaPrioridade });
+        } catch (err) {
+          console.error('Erro ao salvar prioridade no Firebase:', err);
+        }
+      }
+      openDetail(orderId);
+      render();
+      if (document.body.classList.contains('kanban-mode')) renderKanban();
+      if (document.body.classList.contains('agenda-mode')) renderAgenda();
+    };
+  });
+}
 
   if (!editBtn || !saveBtn || !select) return;
 
@@ -3399,8 +3494,8 @@ function openDetail(id) {
   // Bind editor de prazo
   bindPrazoEditor(o.id);
 
-  // Bind editor de setor
-  bindSetorEditor(o.id);
+bindDescEditor(o.id);
+bindPriorityEditor(o.id);
 
   // Renderizar fotos
   renderFotosPainel(o.id);
