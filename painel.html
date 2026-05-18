@@ -1895,6 +1895,135 @@ body.agenda-mode .kanban-view { display: none; }
 }
 .setor-save-btn:hover { background: var(--orange-soft); color: var(--paper); }
 
+/* === EDITOR DE DESCRIÇÃO === */
+.detail-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.detail-label-row .detail-label {
+  margin-bottom: 0;
+}
+.desc-edit-btn {
+  background: none;
+  border: 1px solid var(--line-2);
+  color: var(--ink-mute);
+  padding: 6px 10px;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+.desc-edit-btn:hover { color: var(--ink); border-color: var(--orange); }
+.desc-current {
+  font-size: 14px;
+  line-height: 1.5;
+}
+.desc-edit { margin-top: 4px; }
+.desc-input {
+  width: 100%;
+  background: var(--bg-2);
+  border: 1px solid var(--line-2);
+  border-bottom: 2px solid var(--steel);
+  color: var(--ink);
+  padding: 10px 12px;
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.5;
+  outline: none;
+  resize: vertical;
+  min-height: 80px;
+  box-sizing: border-box;
+}
+.desc-input:focus { border-bottom-color: var(--orange); }
+.desc-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+.desc-save-btn {
+  background: var(--orange);
+  color: var(--bg);
+  border: none;
+  padding: 8px 16px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-weight: 600;
+  cursor: pointer;
+}
+.desc-save-btn:hover { background: var(--orange-soft); color: var(--paper); }
+.desc-cancel-btn {
+  background: transparent;
+  border: 1px solid var(--line-2);
+  color: var(--ink-mute);
+  padding: 8px 16px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.desc-cancel-btn:hover { color: var(--ink); border-color: var(--ink); }
+
+/* === EDITOR DE PRIORIDADE === */
+.priority-edit-btn {
+  background: none;
+  border: 1px solid var(--line-2);
+  color: var(--ink-mute);
+  padding: 4px 10px;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.priority-edit-btn:hover { color: var(--ink); border-color: var(--orange); }
+.priority-opt-btn {
+  background: var(--bg-2);
+  border: 1px solid var(--line-2);
+  color: var(--ink);
+  padding: 6px 12px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.priority-opt-btn:hover { border-color: var(--orange); }
+.priority-opt-btn.crit { color: var(--red); border-color: rgba(193, 63, 63, 0.4); }
+.priority-opt-btn.crit:hover { background: var(--red); color: var(--paper); border-color: var(--red); }
+.priority-opt-btn.high { color: var(--orange); border-color: rgba(212, 124, 79, 0.4); }
+.priority-opt-btn.high:hover { background: var(--orange); color: var(--bg); border-color: var(--orange); }
+.priority-opt-btn.med { color: var(--yellow); border-color: rgba(196, 149, 106, 0.4); }
+.priority-opt-btn.med:hover { background: var(--yellow); color: var(--bg); border-color: var(--yellow); }
+.priority-opt-btn.low { color: var(--blue); border-color: rgba(86, 135, 168, 0.4); }
+.priority-opt-btn.low:hover { background: var(--blue); color: var(--paper); border-color: var(--blue); }
+.priority-cancel-btn {
+  background: transparent;
+  border: 1px solid var(--line-2);
+  color: var(--ink-mute);
+  padding: 6px 12px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.priority-cancel-btn:hover { color: var(--ink); border-color: var(--ink); }
+
+
 
 @media (max-width: 480px) {
   .photo-gallery-painel { grid-template-columns: repeat(3, 1fr); }
@@ -2645,6 +2774,158 @@ async function salvarSetor(orderId) {
 }
 
 
+// === EDITOR DE DESCRIÇÃO ===
+function bindDescEditor(orderId) {
+  const safeId = orderId.replace(/[^a-zA-Z0-9]/g, '_');
+  const editBtn = document.querySelector('[data-edit-desc="' + orderId + '"]');
+  const saveBtn = document.querySelector('[data-save-desc="' + orderId + '"]');
+  const cancelBtn = document.querySelector('[data-cancel-desc="' + orderId + '"]');
+  const input = document.querySelector('[data-desc-input="' + orderId + '"]');
+  const viewBlock = document.getElementById('descView_' + safeId);
+  const editBlock = document.getElementById('descEdit_' + safeId);
+  const editBtnHeader = document.getElementById('descEditBtn_' + safeId);
+
+  if (!editBtn || !saveBtn || !input) return;
+
+  editBtn.addEventListener('click', () => {
+    viewBlock.style.display = 'none';
+    editBlock.style.display = 'block';
+    if (editBtnHeader) editBtnHeader.style.visibility = 'hidden';
+    input.focus();
+    // Posiciona cursor no fim
+    const v = input.value;
+    input.value = '';
+    input.value = v;
+  });
+
+  cancelBtn.addEventListener('click', () => {
+    const o = orders.find(x => x.id === orderId);
+    input.value = (o && o.desc && o.desc !== '—') ? o.desc : '';
+    viewBlock.style.display = 'block';
+    editBlock.style.display = 'none';
+    if (editBtnHeader) editBtnHeader.style.visibility = '';
+  });
+
+  saveBtn.addEventListener('click', () => salvarDescricao(orderId));
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      salvarDescricao(orderId);
+    } else if (e.key === 'Escape') {
+      cancelBtn.click();
+    }
+  });
+}
+
+async function salvarDescricao(orderId) {
+  const input = document.querySelector('[data-desc-input="' + orderId + '"]');
+  if (!input) return;
+
+  const o = orders.find(x => x.id === orderId);
+  if (!o) return;
+
+  const novaDesc = input.value.trim();
+  const descAtual = (o.desc && o.desc !== '—') ? o.desc : '';
+
+  if (novaDesc === descAtual.trim()) {
+    const safeId = orderId.replace(/[^a-zA-Z0-9]/g, '_');
+    document.getElementById('descView_' + safeId).style.display = 'block';
+    document.getElementById('descEdit_' + safeId).style.display = 'none';
+    const editBtnHeader = document.getElementById('descEditBtn_' + safeId);
+    if (editBtnHeader) editBtnHeader.style.visibility = '';
+    return;
+  }
+
+  o.desc = novaDesc || '—';
+  o.timeline.push({
+    time: 'Agora',
+    text: 'Descrição alterada'
+  });
+
+  // Sincroniza com Firebase se for de lá
+  if (o.fromFirebase && o.firestoreId) {
+    try {
+      await updateDoc(doc(db, 'chamados', o.firestoreId), { descricao: novaDesc });
+    } catch (err) {
+      console.error('Erro ao salvar descrição no Firebase:', err);
+    }
+  }
+
+  openDetail(orderId);
+  render();
+  if (document.body.classList.contains('kanban-mode')) renderKanban();
+  if (document.body.classList.contains('agenda-mode')) renderAgenda();
+}
+
+
+// === EDITOR DE PRIORIDADE ===
+function bindPriorityEditor(orderId) {
+  const safeId = orderId.replace(/[^a-zA-Z0-9]/g, '_');
+  const editBtn = document.querySelector('[data-edit-priority="' + orderId + '"]');
+  const cancelBtn = document.querySelector('[data-cancel-priority="' + orderId + '"]');
+  const optBtns = document.querySelectorAll('[data-priority-opt="' + orderId + '"]');
+  const viewBlock = document.getElementById('priorityView_' + safeId);
+  const editBlock = document.getElementById('priorityEdit_' + safeId);
+
+  if (!editBtn || !optBtns.length || !viewBlock || !editBlock) return;
+
+  editBtn.addEventListener('click', () => {
+    viewBlock.style.display = 'none';
+    editBlock.style.display = 'flex';
+  });
+
+  if (cancelBtn) {
+    cancelBtn.addEventListener('click', () => {
+      viewBlock.style.display = 'flex';
+      editBlock.style.display = 'none';
+    });
+  }
+
+  optBtns.forEach(btn => {
+    btn.addEventListener('click', () => salvarPrioridade(orderId, btn.dataset.priority));
+  });
+}
+
+async function salvarPrioridade(orderId, novaPrioridade) {
+  const o = orders.find(x => x.id === orderId);
+  if (!o) return;
+
+  if (o.priority === novaPrioridade) {
+    const safeId = orderId.replace(/[^a-zA-Z0-9]/g, '_');
+    document.getElementById('priorityView_' + safeId).style.display = 'flex';
+    document.getElementById('priorityEdit_' + safeId).style.display = 'none';
+    return;
+  }
+
+  const labelMap = { crit: 'Crítica', high: 'Alta', med: 'Média', low: 'Baixa' };
+  const oldLabel = labelMap[o.priority] || o.priority;
+  const newLabel = labelMap[novaPrioridade] || novaPrioridade;
+
+  o.priority = novaPrioridade;
+  o.timeline.push({
+    time: 'Agora',
+    text: 'Prioridade alterada de "' + oldLabel + '" para "' + newLabel + '"'
+  });
+
+  // Sincroniza com Firebase se for de lá
+  // No Firestore o campo "prioridade" usa o label em PT (Crítica/Alta/Normal/Baixa)
+  if (o.fromFirebase && o.firestoreId) {
+    try {
+      const prioridadeBR = { crit: 'Crítica', high: 'Alta', med: 'Normal', low: 'Baixa' }[novaPrioridade] || 'Normal';
+      await updateDoc(doc(db, 'chamados', o.firestoreId), { prioridade: prioridadeBR });
+    } catch (err) {
+      console.error('Erro ao salvar prioridade no Firebase:', err);
+    }
+  }
+
+  openDetail(orderId);
+  render();
+  if (document.body.classList.contains('kanban-mode')) renderKanban();
+  if (document.body.classList.contains('agenda-mode')) renderAgenda();
+}
+
+
 function priorityLabel(p) {
   return { crit: 'CRÍT', high: 'ALTA', med: 'MÉDIA', low: 'BAIXA' }[p] || p.toUpperCase();
 }
@@ -3064,9 +3345,17 @@ function openDetail(id) {
       <button class="modal-close" data-close>✕</button>
     </div>
     <div class="modal-body">
-      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom: 4px;">
+      <div class="priority-row" id="priorityView_${o.id.replace(/[^a-zA-Z0-9]/g,'_')}" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom: 4px; align-items:center;">
         <span class="priority-tag ${cls}" style="font-family:var(--mono); font-size:10px; letter-spacing:0.2em;">${o.status === 'done' ? 'CONCLUÍDA' : o.status === 'waiting_part' ? 'AGUARDA PEÇA' : o.status === 'waiting_auth' ? 'AGUARDA AUTORIZAÇÃO' : o.status === 'paused' ? 'PAUSADA' : priorityLabel(o.priority)}</span>
         <span style="padding: 2px 8px; background: var(--bg-2); border: 1px solid var(--line-2); font-family: var(--mono); font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: ${o.status==='progress' ? 'var(--orange)' : 'var(--ink-mute)'};">${statusLabel(o.status)}</span>
+        ${o.status !== 'done' ? `<button class="priority-edit-btn" data-edit-priority="${o.id}">Alterar prioridade</button>` : ''}
+      </div>
+      <div class="priority-edit-wrap" id="priorityEdit_${o.id.replace(/[^a-zA-Z0-9]/g,'_')}" style="display:none; gap:6px; flex-wrap:wrap; align-items:center; margin-bottom: 4px;">
+        <button class="priority-opt-btn crit" data-priority-opt="${o.id}" data-priority="crit">Crítica</button>
+        <button class="priority-opt-btn high" data-priority-opt="${o.id}" data-priority="high">Alta</button>
+        <button class="priority-opt-btn med" data-priority-opt="${o.id}" data-priority="med">Média</button>
+        <button class="priority-opt-btn low" data-priority-opt="${o.id}" data-priority="low">Baixa</button>
+        <button class="priority-cancel-btn" data-cancel-priority="${o.id}">Cancelar</button>
       </div>
 
       <div class="detail-section">
@@ -3141,8 +3430,20 @@ function openDetail(id) {
       </div>
 
       <div class="detail-section">
-        <div class="detail-label">Descrição</div>
-        <div class="detail-value" style="white-space: pre-wrap;">${o.desc}</div>
+        <div class="detail-label-row">
+          <div class="detail-label">Descrição</div>
+          ${o.status !== 'done' ? `<button class="desc-edit-btn" data-edit-desc="${o.id}" id="descEditBtn_${o.id.replace(/[^a-zA-Z0-9]/g,'_')}">Alterar</button>` : ''}
+        </div>
+        <div class="desc-current" id="descView_${o.id.replace(/[^a-zA-Z0-9]/g,'_')}">
+          <div class="detail-value" style="white-space: pre-wrap;">${(o.desc && o.desc !== '—') ? o.desc : '<span style="color:var(--ink-mute); font-style:italic;">Sem descrição</span>'}</div>
+        </div>
+        <div class="desc-edit" id="descEdit_${o.id.replace(/[^a-zA-Z0-9]/g,'_')}" style="display:none;">
+          <textarea class="desc-input" data-desc-input="${o.id}" rows="4" placeholder="Descreva o chamado...">${(o.desc && o.desc !== '—') ? o.desc : ''}</textarea>
+          <div class="desc-actions">
+            <button class="desc-save-btn" data-save-desc="${o.id}">OK</button>
+            <button class="desc-cancel-btn" data-cancel-desc="${o.id}">Cancelar</button>
+          </div>
+        </div>
       </div>
 
       ${o.checklist && o.checklist.length ? `
@@ -3278,6 +3579,12 @@ function openDetail(id) {
 
   // Bind editor de setor
   bindSetorEditor(o.id);
+
+  // Bind editor de descrição
+  bindDescEditor(o.id);
+
+  // Bind editor de prioridade
+  bindPriorityEditor(o.id);
 
   // Renderizar fotos
   renderFotosPainel(o.id);
