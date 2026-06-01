@@ -4513,11 +4513,12 @@ render();
     loginErro.textContent = '';
     if (!email || !senha) { loginErro.textContent = 'Preencha e-mail e senha'; return; }
     loginBtn.disabled = true;
-    try {
+     try {
       await signInWithEmailAndPassword(auth, email, senha);
-      location.reload(); // recarrega já autenticado pra os dados carregarem certinho
+      location.reload();
     } catch (err) {
-      loginErro.textContent = 'E-mail ou senha incorretos';
+      console.log('Erro de login:', err.code, err.message);
+      loginErro.textContent = err.code || 'Erro ao entrar';
       loginBtn.disabled = false;
     }
   }
