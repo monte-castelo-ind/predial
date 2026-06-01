@@ -2062,12 +2062,21 @@ body.agenda-mode .kanban-view { display: none; }
       <div style="font-family: var(--mono); font-size: 10px; letter-spacing: 0.25em; color: var(--ink-mute); text-transform: uppercase;">Painel · Acesso restrito</div>
     </div>
 
-    <div style="background: var(--bg-2); border: 1px solid var(--line-2); border-top: 2px solid var(--orange); padding: 24px 22px;">
-      <div style="font-family: var(--mono); font-size: 9px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--ink-mute); margin-bottom: 10px; text-align: left;">Senha</div>
-      <input type="password" id="loginSenha" inputmode="numeric" autocomplete="off" maxlength="20" placeholder="• • • •" style="width: 100%; background: var(--bg); border: 1px solid var(--line-2); border-bottom: 2px solid var(--steel); color: var(--ink); padding: 14px; font-family: var(--sans); font-size: 22px; text-align: center; letter-spacing: 0.4em; font-weight: 600; outline: none;">
-      <div id="loginErro" style="font-family: var(--mono); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--red); margin-top: 10px; min-height: 14px;"></div>
-      <button id="loginBtn" style="width: 100%; padding: 14px; margin-top: 14px; background: var(--orange); color: var(--bg); border: none; font-family: var(--mono); font-size: 11px; letter-spacing: 0.25em; text-transform: uppercase; font-weight: 600; cursor: pointer;">Entrar</button>
-    </div>
+<div style="background: var(--bg-2); border: 1px solid var(--line-2); border-top: 2px solid var(--orange); padding: 24px 22px;">
+
+  <div style="font-family: var(--mono); font-size: 9px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--ink-mute); margin-bottom: 10px; text-align: left;">E-mail</div>
+  <input type="email" id="loginEmail" autocomplete="username" placeholder="seu@email.com.br"
+    style="width: 100%; background: var(--bg); border: 1px solid var(--line-2); color: var(--ink); padding: 12px; font-family: var(--mono); font-size: 13px; box-sizing: border-box; margin-bottom: 16px;">
+
+  <div style="font-family: var(--mono); font-size: 9px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--ink-mute); margin-bottom: 10px; text-align: left;">Senha</div>
+  <input type="password" id="loginSenha" autocomplete="current-password" placeholder="sua senha"
+    style="width: 100%; background: var(--bg); border: 1px solid var(--line-2); color: var(--ink); padding: 12px; font-family: var(--mono); font-size: 13px; box-sizing: border-box;">
+
+  <div id="loginErro" style="font-family: var(--mono); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--red); margin-top: 10px; min-height: 14px;"></div>
+
+  <button id="loginBtn" style="width: 100%; padding: 14px; margin-top: 14px; background: var(--orange); color: var(--bg); border: none; font-family: var(--mono); font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; cursor: pointer;">Entrar</button>
+
+</div>
 
     <div style="margin-top: 20px;">
       <a href="https://jonathanthome1.github.io/Predial/" style="font-family: var(--mono); font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-mute); text-decoration: none;">‹ Voltar ao app de chamados</a>
@@ -2075,13 +2084,6 @@ body.agenda-mode .kanban-view { display: none; }
   </div>
 </div>
 
-<script>
-(function(){
-  const SENHA = "1234";
-  const screen = document.getElementById('loginScreen');
-  const input = document.getElementById('loginSenha');
-  const btn = document.getElementById('loginBtn');
-  const erro = document.getElementById('loginErro');
 
   // Já autenticado? Libera direto.
   if (sessionStorage.getItem('painel_auth') === 'ok') {
@@ -4481,5 +4483,48 @@ render();
   <button class="painel-lightbox-close" onclick="event.stopPropagation();fecharLightboxPainel()">✕</button>
   <img id="painel-lightbox-img" src="" alt="" />
 </div>
+  <script type="module">
+  import { getApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+  const auth = getAuth(getApp());   // usa o MESMO app Firebase já iniciado no painel
+
+  const loginScreen = document.getElementById('loginScreen');
+  const loginEmail  = document.getElementById('loginEmail');
+  const loginSenha  = document.getElementById('loginSenha');
+  const loginBtn    = document.getElementById('loginBtn');
+  const loginErro   = document.getElementById('loginErro');
+
+  document.body.style.overflow = 'hidden'; // trava até confirmar o login
+
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      loginScreen.style.display = 'none';
+      document.body.style.overflow = '';
+    } else {
+      loginScreen.style.display = '';
+      document.body.style.overflow = 'hidden';
+    }
+  });
+
+  async function entrar() {
+    const email = (loginEmail.value || '').trim();
+    const senha = (loginSenha.value || '').trim();
+    loginErro.textContent = '';
+    if (!email || !senha) { loginErro.textContent = 'Preencha e-mail e senha'; return; }
+    loginBtn.disabled = true;
+    try {
+      await signInWithEmailAndPassword(auth, email, senha);
+      location.reload(); // recarrega já autenticado pra os dados carregarem certinho
+    } catch (err) {
+      loginErro.textContent = 'E-mail ou senha incorretos';
+      loginBtn.disabled = false;
+    }
+  }
+
+  loginBtn.addEventListener('click', entrar);
+  loginSenha.addEventListener('keydown', (e) => { if (e.key === 'Enter') entrar(); });
+  loginEmail.addEventListener('keydown', (e) => { if (e.key === 'Enter') entrar(); });
+</script>
 </body>
 </html>
