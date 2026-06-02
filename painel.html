@@ -3435,7 +3435,13 @@ function openDetail(id) {
           <button class="status-btn" data-act="waiting_auth" data-id="${o.id}" style="background: rgba(139, 107, 184, 0.15); color: #B595D8; border-color: rgba(139, 107, 184, 0.4);">🟣 Aguard. autorização</button>
           <button class="status-btn" data-act="paused" data-id="${o.id}" style="background: rgba(79, 79, 79, 0.3); color: var(--ink); border-color: var(--steel);">⏸ Pausar</button>
         </div>
-      </div>` : ''}
+</div>` : `
+            <div class="detail-section">
+              <div class="detail-label">Tarefa concluída</div>
+              <div class="status-actions">
+                <button class="status-btn" data-act="open" data-id="${o.id}">↻ Reabrir tarefa</button>
+              </div>
+            </div>`}
 
       <div class="detail-section">
         <div class="detail-label">Fotos (${(o.fotos || []).length})</div>
