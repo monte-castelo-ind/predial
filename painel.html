@@ -2084,47 +2084,6 @@ body.agenda-mode .kanban-view { display: none; }
   </div>
 </div>
 
-
-  // Já autenticado? Libera direto.
-  if (sessionStorage.getItem('painel_auth') === 'ok') {
-    screen.style.display = 'none';
-    return;
-  }
-
-  // Trava scroll/interação do app por trás
-  document.body.style.overflow = 'hidden';
-
-  function tentar() {
-    const v = (input.value || '').trim();
-    if (!v) {
-      erro.textContent = 'Digite a senha';
-      input.focus();
-      return;
-    }
-    if (v === SENHA) {
-      sessionStorage.setItem('painel_auth', 'ok');
-      erro.textContent = '';
-      btn.textContent = 'Entrando...';
-      btn.disabled = true;
-      setTimeout(() => {
-        screen.style.display = 'none';
-        document.body.style.overflow = '';
-      }, 250);
-    } else {
-      erro.textContent = '✗ Senha incorreta';
-      input.value = '';
-      input.focus();
-    }
-  }
-
-  btn.addEventListener('click', tentar);
-  input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') { e.preventDefault(); tentar(); }
-  });
-
-  // Foca o campo automaticamente
-  setTimeout(() => input.focus(), 100);
-})();
 </script>
 
 
