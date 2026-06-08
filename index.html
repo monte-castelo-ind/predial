@@ -1147,7 +1147,9 @@ async function salvarChamado(){
       historico:[{acao:'Chamado aberto',data:hoje(),hora:agora(),obs:solicitante?'Por: '+solicitante:''}],
       timestamp:Date.now()
     });
-    NOVO_PHOTOS['novo'] = [];
+   NOVO_PHOTOS['novo'] = [];
+    btn.textContent='Abrir chamado ✓';btn.disabled=false;
+    alert('Tarefa incluída com sucesso!');
     goTo('s-lista');
   }catch(e){alert('Erro: '+e.message);btn.textContent='Abrir chamado ✓';btn.disabled=false;}
 }
