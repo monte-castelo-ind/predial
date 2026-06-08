@@ -3981,7 +3981,6 @@ function syncFirebaseOrders() {
     renderKanban();
   }
 }
-let orders = [];
 // Inicia o listener
 onSnapshot(collection(db, 'chamados'), (snap) => {
   // Detectar adições novas (skip da primeira carga)
