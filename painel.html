@@ -3982,6 +3982,60 @@ function syncFirebaseOrders() {
     renderKanban();
   }
 }
+  // ===== MIGRAÇÃO ÚNICA DAS TAREFAS ANTIGAS (TEMPORÁRIO — REMOVER DEPOIS) =====
+(function(){
+  const btn = document.createElement('button');
+  btn.textContent = '⬆️ Migrar tarefas antigas';
+  btn.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:99999;background:#C99A3F;color:#1B3A6B;border:none;padding:12px 18px;border-radius:10px;font-weight:700;font-family:sans-serif;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.4)';
+  document.body.appendChild(btn);
+
+  const statusParaFb = { open:'aberto', progress:'andamento', done:'concluido', waiting_part:'aguardando_peca', waiting_auth:'aguardando_autorizacao', paused:'pausada' };
+  const prioParaFb   = { low:'baixa', med:'normal', high:'alta', urgent:'urgente' };
+  const pad = n => String(n).padStart(2,'0');
+  const dataBR  = d => { d = d ? new Date(d) : new Date(); return pad(d.getDate())+'/'+pad(d.getMonth()+1)+'/'+d.getFullYear(); };
+  const horaStr = d => { d = d ? new Date(d) : new Date(); return pad(d.getHours())+':'+pad(d.getMinutes()); };
+
+  btn.onclick = async function(){
+    const antigas = orders.filter(o => !o.fromFirebase);
+    if(!antigas.length){ alert('Nenhuma tarefa antiga pra migrar.'); return; }
+    if(!confirm('Migrar '+antigas.length+' tarefa(s) antiga(s) pro Firebase?\n\nFaça isso UMA vez só.')) return;
+    btn.disabled = true; btn.textContent = 'Migrando…';
+    const { addDoc } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    let ok = 0, falhas = 0;
+    for(const o of antigas){
+      try{
+        const historico = (o.timeline||[]).map(t => ({
+          acao: (t.text||'').split(' — ')[0] || t.text || 'Registro',
+          obs:  (t.text||'').includes(' — ') ? t.text.split(' — ').slice(1).join(' — ') : '',
+          data: (t.time||'').split(' · ')[0] || '',
+          hora: (t.time||'').includes(' · ') ? t.time.split(' · ')[1] : ''
+        }));
+        const base = o.createdAt || o.deadline || new Date();
+        await addDoc(collection(db,'chamados'), {
+          titulo: o.title || '(sem título)',
+          descricao: (o.desc && o.desc !== '—') ? o.desc : '',
+          setor: (o.local && o.local !== 'Não especificado') ? o.local : '',
+          solicitante: (o.assignee && o.assignee !== 'Não atribuído') ? o.assignee : '',
+          prioridade: prioParaFb[o.priority] || 'normal',
+          status: statusParaFb[o.status] || 'aberto',
+          dataAbertura: dataBR(base),
+          horaAbertura: horaStr(base),
+          dataConclusao: o.status === 'done' ? dataBR(o.deadline || base) : null,
+          horaConclusao: o.status === 'done' ? horaStr(o.deadline || base) : null,
+          observacaoConclusao: '',
+          historico: historico,
+          fotos: o.fotos || [],
+          origem: 'migracao_antiga',
+          timestamp: Date.now()
+        });
+        ok++;
+      }catch(e){ console.error('Falha ao migrar', o.id, e); falhas++; }
+    }
+    btn.textContent = '✓ Migradas: '+ok+(falhas?(' / falhas '+falhas):'');
+    alert('Migração concluída.\nMigradas: '+ok+'   Falhas: '+falhas+'\n\nAgora volte no código, troque o "let orders = [{...}]" por "let orders = [];" e remova este bloco. Depois dê commit.');
+  };
+})();
+// ===== FIM DA MIGRAÇÃO TEMPORÁRIA =====
 
 // Inicia o listener
 onSnapshot(collection(db, 'chamados'), (snap) => {
