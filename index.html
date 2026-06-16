@@ -777,17 +777,19 @@ let chamadoAtivo = null;
 
 
 // ============ CONFIGURAÇÃO DE ÁREAS ============
+// PIN único padrão para todas as áreas
+const PIN_PADRAO = '2001';
 const AREAS = [
-  { nome: 'Confeitaria',      icon: '🧁', pin: '2001' },
-  { nome: 'Cozinha',          icon: '🍳', pin: '2002' },
-  { nome: 'Panificação',      icon: '🍞', pin: '2003' },
-  { nome: 'Embalação',        icon: '📦', pin: '2004' },
-  { nome: 'Frota',            icon: '🚚', pin: '2005' },
-  { nome: 'Refeitório',       icon: '🍽️', pin: '2006' },
-  { nome: 'Diretoria',        icon: '🏢', pin: '2007' },
-  { nome: 'Recepção',         icon: '📞', pin: '2008' },
-  { nome: 'Limpeza',          icon: '🧹', pin: '2009' },
-  { nome: 'Estoque',          icon: '🗄️', pin: '2010' }
+  { nome: 'Confeitaria',      icon: '🧁', pin: PIN_PADRAO },
+  { nome: 'Cozinha',          icon: '🍳', pin: PIN_PADRAO },
+  { nome: 'Panificação',      icon: '🍞', pin: PIN_PADRAO },
+  { nome: 'Embalação',        icon: '📦', pin: PIN_PADRAO },
+  { nome: 'Frota',            icon: '🚚', pin: PIN_PADRAO },
+  { nome: 'Refeitório',       icon: '🍽️', pin: PIN_PADRAO },
+  { nome: 'Diretoria',        icon: '🏢', pin: PIN_PADRAO },
+  { nome: 'Recepção',         icon: '📞', pin: PIN_PADRAO },
+  { nome: 'Limpeza',          icon: '🧹', pin: PIN_PADRAO },
+  { nome: 'Estoque',          icon: '🗄️', pin: PIN_PADRAO }
 ];
 
 let areaSelecionada = null;
@@ -1026,19 +1028,8 @@ function goTo(id){
 
 // === PAINEL: AUTENTICAÇÃO ===
 function abrirPainel(){
-  // Já autenticado nesta sessão? Vai direto.
-  if(sessionStorage.getItem('painel_auth')==='ok'){
-    window.location.href = URL_PAINEL;
-    return;
-  }
-  // Caso contrário, abre modal
-  const modal = document.getElementById('modal-senha');
-  const input = document.getElementById('senha-input');
-  const erro = document.getElementById('senha-erro');
-  input.value = '';
-  erro.textContent = '';
-  modal.classList.add('open');
-  setTimeout(()=>input.focus(), 250);
+  // Vai direto pro painel — a autenticação (login + senha) é feita no próprio painel (Firebase).
+  window.location.href = URL_PAINEL;
 }
 
 function fecharModalSenha(){
