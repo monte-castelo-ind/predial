@@ -777,19 +777,24 @@ let chamadoAtivo = null;
 
 
 // ============ CONFIGURAÇÃO DE ÁREAS ============
-// PIN único padrão para todas as áreas
-const PIN_PADRAO = '2001';
+// Áreas (setores) — PINs vêm do Firebase (doc configApp/pins), não ficam no código
+let PINS_AREAS = {};
+function normArea(s){ return (s||'').toString().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().trim(); }
+function matchArea(setorChamado, areaNome){ const base = normArea(setorChamado).split('·')[0].trim(); return base === normArea(areaNome); }
 const AREAS = [
-  { nome: 'Confeitaria',      icon: '🧁', pin: PIN_PADRAO },
-  { nome: 'Cozinha',          icon: '🍳', pin: PIN_PADRAO },
-  { nome: 'Panificação',      icon: '🍞', pin: PIN_PADRAO },
-  { nome: 'Embalação',        icon: '📦', pin: PIN_PADRAO },
-  { nome: 'Frota',            icon: '🚚', pin: PIN_PADRAO },
-  { nome: 'Refeitório',       icon: '🍽️', pin: PIN_PADRAO },
-  { nome: 'Diretoria',        icon: '🏢', pin: PIN_PADRAO },
-  { nome: 'Recepção',         icon: '📞', pin: PIN_PADRAO },
-  { nome: 'Limpeza',          icon: '🧹', pin: PIN_PADRAO },
-  { nome: 'Estoque',          icon: '🗄️', pin: PIN_PADRAO }
+  { nome: 'ADMINISTRATIVO', icon: '🏢' },
+  { nome: 'CONFEITARIA',    icon: '🧁' },
+  { nome: 'COZINHA/CONF',   icon: '🍳' },
+  { nome: 'DIRETORIA',      icon: '👔' },
+  { nome: 'EMBALAÇÃO',      icon: '📦' },
+  { nome: 'EXPEDIÇÃO',      icon: '🚛' },
+  { nome: 'FROTA',          icon: '🚚' },
+  { nome: 'LIMPEZA',        icon: '🧹' },
+  { nome: 'PANIFICAÇÃO',    icon: '🍞' },
+  { nome: 'PREDIAL',        icon: '🏗️' },
+  { nome: 'RECEBIMENTO',    icon: '📥' },
+  { nome: 'REFEITÓRIO',     icon: '🍽️' },
+  { nome: 'OUTRO',          icon: '📍' }
 ];
 
 let areaSelecionada = null;
@@ -822,7 +827,14 @@ function areaPinDigit(d) {
   areaPinBuffer += d;
   updateAreaPinDots();
   if (areaPinBuffer.length === 4) {
-    if (areaPinBuffer === areaSelecionada.pin) {
+    const chavePin = areaSelecionada.nome.replace(/\//g,' ');
+    const pinCerto = PINS_AREAS[chavePin] != null ? PINS_AREAS[chavePin] : PINS_AREAS[areaSelecionada.nome];
+    if (!pinCerto) {
+      document.getElementById('area-pin-err').textContent = 'PIN ainda não configurado. Fale com o Miguel.';
+      setTimeout(() => { areaPinBuffer=''; updateAreaPinDots(); document.getElementById('area-pin-err').textContent=''; }, 1600);
+      return;
+    }
+    if (areaPinBuffer === String(pinCerto)) {
       // Acertou: entra na home da área
       sessionStorage.setItem('area_atual', areaSelecionada.nome);
       abrirHomeArea();
@@ -868,7 +880,7 @@ function sairDaArea() {
 
 function renderAreaHome() {
   if (!areaSelecionada) return;
-  const minhas = chamados.filter(c => c.setor === areaSelecionada.nome);
+  const minhas = chamados.filter(c => matchArea(c.setor, areaSelecionada.nome));
   const counts = { aberto: 0, andamento: 0, concluido: 0 };
   minhas.forEach(c => { counts[c.status] = (counts[c.status] || 0) + 1; });
   document.getElementById('area-m-aberto').textContent = counts.aberto || 0;
@@ -1084,6 +1096,7 @@ document.getElementById('modal-senha').addEventListener('click', (e)=>{
   if(e.target.id === 'modal-senha') fecharModalSenha();
 });
 
+onSnapshot(doc(db,'configApp','pins'), function(snap){ PINS_AREAS = (snap.exists() && snap.data().pins) ? snap.data().pins : {}; }, function(e){ console.warn('pins:', e.code||e.message); });
 onSnapshot(collection(db,'chamados'), function(snap){
   chamados=snap.docs.map(function(d){return Object.assign({firestoreId:d.id},d.data());}).sort(function(a,b){return (b.timestamp||0)-(a.timestamp||0);});
   const tela=document.querySelector('.screen.active') ? document.querySelector('.screen.active').id : '';
