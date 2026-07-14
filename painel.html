@@ -2159,12 +2159,21 @@ body.agenda-mode .kanban-view { display: none; }
     <button class="chip active" data-filter="all">Tudo</button>
     <button class="chip" data-filter="open">Em aberto</button>
     <button class="chip" data-filter="progress">Em execução</button>
-    <button class="chip" data-bucket="PREDIAL">Predial</button>
+    <button class="chip" data-bucket="ADMINISTRATIVO">Administrativo</button>
     <button class="chip" data-bucket="CONFEITARIA">Confeitaria</button>
-    <button class="chip" data-bucket="COZINHA/REFEITÓRIO">Cozinha</button>
-    <button class="chip" data-bucket="PANIFICAÇÃO">Panificação</button>
+    <button class="chip" data-bucket="COZINHA/CONF">Cozinha/Conf</button>
+    <button class="chip" data-bucket="DIRETORIA">Diretoria</button>
     <button class="chip" data-bucket="EMBALAÇÃO">Embalação</button>
-    <button class="chip" data-bucket="Frota">Frota</button>
+    <button class="chip" data-bucket="EXPEDIÇÃO">Expedição</button>
+    <button class="chip" data-bucket="FROTA">Frota</button>
+    <button class="chip" data-bucket="LIMPEZA">Limpeza</button>
+    <button class="chip" data-bucket="PANIFICAÇÃO">Panificação</button>
+    <button class="chip" data-bucket="PREDIAL">Predial</button>
+    <button class="chip" data-bucket="RECEBIMENTO">Recebimento</button>
+    <button class="chip" data-bucket="REFEITÓRIO">Refeitório</button>
+    <button class="chip" data-bucket="OUTRO">Outro</button>
+    <button class="chip" data-bucket="PROJETOS">Projetos</button>
+    <button class="chip" data-bucket="TAREFAS MIGUEL">Tarefas Miguel</button>
   </div>
 
   
@@ -2194,15 +2203,21 @@ body.agenda-mode .kanban-view { display: none; }
       </div>
       <div class="kanban-bucket-chips" id="kanbanBucketChips">
         <button class="chip active" data-kbucket="">Todos</button>
-        <button class="chip" data-kbucket="PREDIAL">Predial</button>
+        <button class="chip" data-kbucket="ADMINISTRATIVO">Administrativo</button>
         <button class="chip" data-kbucket="CONFEITARIA">Confeitaria</button>
-        <button class="chip" data-kbucket="COZINHA/REFEITÓRIO">Cozinha</button>
-        <button class="chip" data-kbucket="PANIFICAÇÃO">Panificação</button>
+        <button class="chip" data-kbucket="COZINHA/CONF">Cozinha/Conf</button>
+        <button class="chip" data-kbucket="DIRETORIA">Diretoria</button>
         <button class="chip" data-kbucket="EMBALAÇÃO">Embalação</button>
-        <button class="chip" data-kbucket="Frota">Frota</button>
-        <button class="chip" data-kbucket="Tarefas Miguel">Tarefas Miguel</button>
-        <button class="chip" data-kbucket="Diretoria">Diretoria</button>
-        <button class="chip" data-kbucket="Projetos">Projetos</button>
+        <button class="chip" data-kbucket="EXPEDIÇÃO">Expedição</button>
+        <button class="chip" data-kbucket="FROTA">Frota</button>
+        <button class="chip" data-kbucket="LIMPEZA">Limpeza</button>
+        <button class="chip" data-kbucket="PANIFICAÇÃO">Panificação</button>
+        <button class="chip" data-kbucket="PREDIAL">Predial</button>
+        <button class="chip" data-kbucket="RECEBIMENTO">Recebimento</button>
+        <button class="chip" data-kbucket="REFEITÓRIO">Refeitório</button>
+        <button class="chip" data-kbucket="OUTRO">Outro</button>
+        <button class="chip" data-kbucket="PROJETOS">Projetos</button>
+        <button class="chip" data-kbucket="TAREFAS MIGUEL">Tarefas Miguel</button>
       </div>
       <div style="display: flex; gap: 8px; margin-top: 10px; overflow-x: auto; scrollbar-width: none; align-items: center;">
         <span class="periodo-label">Prazo</span>
@@ -2311,15 +2326,21 @@ body.agenda-mode .kanban-view { display: none; }
         <div class="field">
           <label class="field-label">Setor</label>
           <select id="newLocal">
-            <option value="PREDIAL">PREDIAL</option>
-            <option value="PANIFICAÇÃO">PANIFICAÇÃO</option>
+            <option value="ADMINISTRATIVO">ADMINISTRATIVO</option>
             <option value="CONFEITARIA">CONFEITARIA</option>
-            <option value="COZINHA/REFEITÓRIO">COZINHA/REFEITÓRIO</option>
+            <option value="COZINHA/CONF">COZINHA/CONF</option>
+            <option value="DIRETORIA">DIRETORIA</option>
             <option value="EMBALAÇÃO">EMBALAÇÃO</option>
-            <option value="Frota">Frota</option>
-            <option value="Diretoria">Diretoria</option>
-            <option value="Projetos">Projetos</option>
-            <option value="Tarefas Miguel">Tarefas Miguel</option>
+            <option value="EXPEDIÇÃO">EXPEDIÇÃO</option>
+            <option value="FROTA">FROTA</option>
+            <option value="LIMPEZA">LIMPEZA</option>
+            <option value="PANIFICAÇÃO">PANIFICAÇÃO</option>
+            <option value="PREDIAL">PREDIAL</option>
+            <option value="RECEBIMENTO">RECEBIMENTO</option>
+            <option value="REFEITÓRIO">REFEITÓRIO</option>
+            <option value="OUTRO">OUTRO</option>
+            <option value="PROJETOS">PROJETOS</option>
+            <option value="TAREFAS MIGUEL">TAREFAS MIGUEL</option>
           </select>
         </div>
       </div>
@@ -2408,6 +2429,8 @@ orders.forEach(o => {
 });
 
 let state = { tab: 'all', filter: 'all', bucket: null, search: '', shown: 60, periodo: 'all', periodoCampo: 'deadline' };
+function normSetor(s){ return (s||'').toString().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().trim(); }
+function bucketMatch(local, bucket){ if(!bucket) return true; let L=normSetor(local); const base=L.split('·')[0].trim(); const B=normSetor(bucket); if(L===B||base===B) return true; const bp=B.split('/').map(x=>x.trim()), lp=base.split('/').map(x=>x.trim()); return bp.some(b=>lp.includes(b)); }
 
 
 // Lista de responsáveis (extraída da planilha)
@@ -2992,7 +3015,7 @@ function filterOrders() {
       if (new Date(o.deadline) >= new Date() || o.status === 'done') return false;
     }
     // bucket
-    if (state.bucket && o.local !== state.bucket) return false;
+    if (state.bucket && !bucketMatch(o.local, state.bucket)) return false;
     // search
     if (q) {
       const haystack = (o.title + ' ' + o.local + ' ' + o.assignee + ' ' + o.id + ' ' + (o.desc || '')).toLowerCase();
@@ -3329,18 +3352,21 @@ function openDetail(id) {
             <div class="setor-edit" id="setorEdit_${o.id.replace(/[^a-zA-Z0-9]/g,'_')}" style="display:none;">
               <div class="setor-input-wrap">
                 <select class="setor-select" data-setor-select="${o.id}">
-                  <option value="Administrativo">Administrativo</option>
-                  <option value="Confeitaria">Confeitaria</option>
-                  <option value="Cozinha">Cozinha</option>
-                  <option value="Diretoria">Diretoria</option>
-                  <option value="Embalação">Embalação</option>
-                  <option value="Expedição">Expedição</option>
-                  <option value="Frota">Frota</option>
-                  <option value="Limpeza">Limpeza</option>
-                  <option value="Panificação">Panificação</option>
-                  <option value="Predial">Predial</option>
-                  <option value="Recebimento">Recebimento</option>
-                  <option value="Refeitório">Refeitório</option>
+                  <option value="ADMINISTRATIVO">ADMINISTRATIVO</option>
+                  <option value="CONFEITARIA">CONFEITARIA</option>
+                  <option value="COZINHA/CONF">COZINHA/CONF</option>
+                  <option value="DIRETORIA">DIRETORIA</option>
+                  <option value="EMBALAÇÃO">EMBALAÇÃO</option>
+                  <option value="EXPEDIÇÃO">EXPEDIÇÃO</option>
+                  <option value="FROTA">FROTA</option>
+                  <option value="LIMPEZA">LIMPEZA</option>
+                  <option value="PANIFICAÇÃO">PANIFICAÇÃO</option>
+                  <option value="PREDIAL">PREDIAL</option>
+                  <option value="RECEBIMENTO">RECEBIMENTO</option>
+                  <option value="REFEITÓRIO">REFEITÓRIO</option>
+                  <option value="OUTRO">OUTRO</option>
+                  <option value="PROJETOS">PROJETOS</option>
+                  <option value="TAREFAS MIGUEL">TAREFAS MIGUEL</option>
                   <option value="__custom__">Outro (digitar)</option>
                 </select>
                 <button class="setor-save-btn" data-save-setor="${o.id}">OK</button>
@@ -3610,7 +3636,7 @@ const kanbanState = { search: '', bucket: '', shownPerCol: { open: 100, progress
 function renderKanban() {
   const q = (kanbanState.search || '').toLowerCase().trim();
   const filtered = orders.filter(o => {
-    if (kanbanState.bucket && o.local !== kanbanState.bucket) return false;
+    if (kanbanState.bucket && !bucketMatch(o.local, kanbanState.bucket)) return false;
     if (q) {
       const hay = (o.title + ' ' + o.local + ' ' + o.assignee + ' ' + o.id + ' ' + (o.desc||'')).toLowerCase();
       if (!hay.includes(q)) return false;
