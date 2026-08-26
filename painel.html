@@ -4515,7 +4515,6 @@ render();
     loginBtn.disabled = true;
      try {
       await signInWithEmailAndPassword(auth, email, senha);
-      if (window.__entrarComodato) { await window.__entrarComodato(email, senha); }
       location.reload();
     } catch (err) {
       console.log('Erro de login:', err.code, err.message);
@@ -4525,16 +4524,14 @@ render();
   }
 
   /* ===== Estoque de peças (projeto do Comodato) =====
-     O painel autentica no projeto do Predial. O estoque de peças vive no
-     Comodato, então aqui entra um segundo app Firebase e o mesmo login é
-     repetido nele — as senhas são as mesmas nos dois projetos.
-     Só o documento de resumo é lido: contagens, sem item nem valor.        */
+     O painel autentica no projeto do Predial; o estoque vive no Comodato.
+     Em vez de repetir a credencial lá — o que falha em silêncio se a senha
+     divergir — lê-se apenas o documento de resumo, que tem só contagens
+     (sem nome de peça, sem valor) e leitura liberada nas regras.          */
   (async function estoquePecas(){
     try{
       const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js");
       const { getFirestore, doc, onSnapshot } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
-      const { getAuth: getAuth2, signInWithEmailAndPassword: entrar2, onAuthStateChanged: mudou2 } =
-        await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js");
 
       const appCom = initializeApp({
         apiKey:"AIzaSyCH_t074MvkJn-qVMvCtLfEMaQHf_e_d7M",
@@ -4545,41 +4542,28 @@ render();
         appId:"1:89709396101:web:22ee225ffa806e07a269ec"
       }, 'comodato');
       const dbCom = getFirestore(appCom);
-      const authCom = getAuth2(appCom);
 
-      const el   = document.getElementById('pecasAviso');
-      const tit  = document.getElementById('pecasAvisoTit');
-      const sub  = document.getElementById('pecasAvisoSub');
-      let ligado = false;
+      const el  = document.getElementById('pecasAviso');
+      const tit = document.getElementById('pecasAvisoTit');
+      const sub = document.getElementById('pecasAvisoSub');
+      if(!el) return;
 
-      function ouvirResumo(){
-        if(ligado) return;
-        ligado = true;
-        onSnapshot(doc(dbCom,'estoquePecasResumo','app'), (snap)=>{
-          if(!snap.exists()){ el.style.display='none'; return; }
-          const d = snap.data() || {};
-          const ab = Number(d.abaixoMinimo)||0;
-          const neg = Number(d.negativos)||0;
-          if(ab<=0 && neg<=0){ el.style.display='none'; return; }
-          const partes=[];
-          if(ab>0)  partes.push(ab+' peça'+(ab>1?'s':'')+' abaixo do mínimo');
-          if(neg>0) partes.push(neg+' com saldo negativo');
-          tit.textContent = partes.join(' · ');
-          sub.textContent = 'Estoque da Oficina · '+(Number(d.total)||0)+' peças cadastradas. Clique para abrir e ver o que comprar.';
-          el.style.display='flex';
-        }, (err)=>{
-          console.warn('resumo de peças:', err.code||err.message);
-          el.style.display='none';
-        });
-      }
-
-      mudou2(authCom, (u)=>{ if(u) ouvirResumo(); });
-
-      // reaproveita o login do painel: mesma credencial no projeto do Comodato
-      window.__entrarComodato = async (email, senha) => {
-        try{ await entrar2(authCom, email, senha); }
-        catch(e){ console.warn('login no Comodato falhou (estoque de peças indisponível):', e.code||e.message); }
-      };
+      onSnapshot(doc(dbCom,'estoquePecasResumo','app'), (snap)=>{
+        if(!snap.exists()){ el.style.display='none'; return; }
+        const d = snap.data() || {};
+        const ab  = Number(d.abaixoMinimo)||0;
+        const neg = Number(d.negativos)||0;
+        if(ab<=0 && neg<=0){ el.style.display='none'; return; }
+        const partes=[];
+        if(ab>0)  partes.push(ab+' peça'+(ab>1?'s':'')+' abaixo do mínimo');
+        if(neg>0) partes.push(neg+' com saldo negativo');
+        tit.textContent = partes.join(' · ');
+        sub.textContent = 'Estoque da Oficina · '+(Number(d.total)||0)+' peças cadastradas. Clique para abrir e ver o que comprar.';
+        el.style.display='flex';
+      }, (err)=>{
+        console.warn('resumo de peças:', err.code||err.message);
+        el.style.display='none';
+      });
     }catch(e){ console.warn('estoque de peças:', e.message); }
   })();
 
