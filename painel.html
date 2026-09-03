@@ -2499,6 +2499,7 @@ async function carregarResponsaveis(){
   if(!RESPONSAVEIS.length) RESPONSAVEIS = RESPONSAVEIS_PADRAO.slice();
   pintarSelectsResp();
   pintarListaResp();
+  montarTodosSelect2();
 }
 async function gravarResponsaveis(){
   const el=document.getElementById('rpStatus');
@@ -2514,13 +2515,14 @@ async function gravarResponsaveis(){
   }
   pintarSelectsResp();
   pintarListaResp();
+  montarTodosSelect2();
 }
 function pintarListaResp(){
   const host=document.getElementById('rpLista');
   if(!host) return;
   // quantas demandas usam cada nome, para avisar antes de remover
   const uso={};
-  (typeof ORDERS!=='undefined'?ORDERS:[]).forEach(o=>{
+  (orders||[]).forEach(o=>{
     if(o.assignee) uso[o.assignee]=(uso[o.assignee]||0)+1;
     if(o.assignee2) uso[o.assignee2]=(uso[o.assignee2]||0)+1;
   });
@@ -2549,7 +2551,7 @@ async function renomearResp(i){
   if(RESPONSAVEIS.some((r,j)=>j!==i && r.toLowerCase()===novo.toLowerCase())){
     alert('Já existe "'+novo+'" na lista.'); return;
   }
-  const afetadas=(typeof ORDERS!=='undefined'?ORDERS:[]).filter(o=>o.assignee===antigo||o.assignee2===antigo);
+  const afetadas=(orders||[]).filter(o=>o.assignee===antigo||o.assignee2===antigo);
   let atualizar=false;
   if(afetadas.length){
     atualizar=confirm(afetadas.length+' demanda(s) usam "'+antigo+'".\n\nAtualizar também nelas?\n\n'+
@@ -2581,7 +2583,7 @@ async function renomearResp(i){
 async function removerResp(i){
   const nome=RESPONSAVEIS[i];
   if(!nome) return;
-  const n=(typeof ORDERS!=='undefined'?ORDERS:[]).filter(o=>o.assignee===nome||o.assignee2===nome).length;
+  const n=(orders||[]).filter(o=>o.assignee===nome||o.assignee2===nome).length;
   if(!confirm('Remover "'+nome+'" da lista?'+
     (n?'\n\n'+n+' demanda(s) usam esse nome. Elas continuam como estão — só não será mais possível escolher esse nome em demandas novas.':''))) return;
   RESPONSAVEIS.splice(i,1);
@@ -2590,6 +2592,34 @@ async function removerResp(i){
 
 function escapeId(id) {
   return id.replace(/[^a-zA-Z0-9]/g, '_');
+}
+
+/* Monta o dropdown do 2º responsável. Fica em função própria porque também é
+   chamado quando a lista termina de carregar do Firestore — se o Miguel abrir
+   o editor antes disso, o select nasceria vazio.                            */
+function montarSelect2(orderId) {
+  const sel2 = document.querySelector('[data-assignee2-select="' + orderId + '"]');
+  if (!sel2) return;
+  const o = (orders || []).find(x => x.id === orderId);
+  const atual = (o && o.assignee2) || '';
+  const lista = (RESPONSAVEIS && RESPONSAVEIS.length) ? RESPONSAVEIS : RESPONSAVEIS_PADRAO;
+  let html = '<option value="">— nenhum —</option>';
+  lista.forEach(r => {
+    html += '<option value="' + String(r).replace(/"/g, '&quot;') + '"' +
+      (r === atual ? ' selected' : '') + '>' +
+      String(r).replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</option>';
+  });
+  // nome que saiu da lista continua selecionável, para não se perder ao salvar
+  if (atual && lista.indexOf(atual) < 0) {
+    html += '<option value="' + atual.replace(/"/g, '&quot;') + '" selected>' + atual + ' (fora da lista)</option>';
+  }
+  sel2.innerHTML = html;
+  sel2.value = atual;
+}
+function montarTodosSelect2() {
+  document.querySelectorAll('[data-assignee2-select]').forEach(el => {
+    montarSelect2(el.getAttribute('data-assignee2-select'));
+  });
 }
 
 function bindAssigneeEditor(orderId) {
@@ -2607,21 +2637,7 @@ function bindAssigneeEditor(orderId) {
   editBtn.addEventListener('click', () => {
     viewBlock.style.display = 'none';
     editBlock.style.display = 'block';
-    // o dropdown do 2º é montado na abertura, para pegar a lista mais recente
-    if (sel2) {
-      const o = ORDERS.find(x => x.id === orderId);
-      const atual = (o && o.assignee2) || '';
-      sel2.innerHTML = '<option value="">— nenhum —</option>' +
-        RESPONSAVEIS.map(r => '<option value="' + r.replace(/"/g,'&quot;') + '"' +
-          (r === atual ? ' selected' : '') + '>' +
-          r.replace(/&/g,'&amp;').replace(/</g,'&lt;') + '</option>').join('');
-      if (atual && RESPONSAVEIS.indexOf(atual) < 0) {
-        // nome que saiu da lista continua selecionável, para não se perder
-        sel2.insertAdjacentHTML('beforeend',
-          '<option value="' + atual.replace(/"/g,'&quot;') + '" selected>' + atual + ' (fora da lista)</option>');
-      }
-      sel2.value = atual;
-    }
+    montarSelect2(orderId);
     input.focus();
     input.select();
     showSuggestions(input.value, orderId);
