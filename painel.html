@@ -2308,11 +2308,39 @@ body.agenda-mode .kanban-view { display: none; }
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="5" height="18" rx="0.5"/><rect x="10" y="3" width="5" height="12" rx="0.5"/><rect x="17" y="3" width="4" height="8" rx="0.5"/></svg>
     Kanban
   </button>
-  <button class="nav-item">
+  <button class="nav-item" id="navPerfil">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a4 4 0 014-4h8a4 4 0 014 4v2"/></svg>
     Perfil
   </button>
 </nav>
+
+<div class="modal-backdrop" id="modalResp">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">Responsáveis</div>
+      <button class="modal-close" data-close-resp>&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label class="field-label">Adicionar responsável</label>
+        <div style="display:flex;gap:8px">
+          <input type="text" id="rpNovo" placeholder="Nome como deve aparecer" style="flex:1">
+          <button class="btn btn-primary" id="rpAdd" style="white-space:nowrap">Adicionar</button>
+        </div>
+      </div>
+      <div id="rpLista" style="margin-top:16px"></div>
+      <div id="rpStatus" style="font-size:12px;color:#8a8f9c;margin-top:12px;min-height:16px"></div>
+      <div style="font-size:11.5px;color:#8a8f9c;margin-top:6px;line-height:1.6">
+        Ao renomear, o app oferece atualizar as demandas que já usam o nome antigo — senão elas ficariam
+        apontando para alguém que não existe mais na lista.
+        Remover não mexe nas demandas antigas: o nome continua no histórico delas.
+      </div>
+      <div class="btn-row" style="margin-top:16px">
+        <button class="btn btn-secondary" data-close-resp>Fechar</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div class="modal-backdrop" id="modalNew">
   <div class="modal">
@@ -2371,21 +2399,12 @@ body.agenda-mode .kanban-view { display: none; }
         </div>
         <div class="field">
           <label class="field-label">Responsável</label>
-          <select id="newAssign">
-            <option>Miguel Kerpel</option>
-            <option>DOUGLAS</option>
-            <option>CLAUDIO</option>
-            <option>Lauri</option>
-            <option>RICARDO MANUTENÇÃO</option>
-            <option>christopher</option>
-            <option>MAICON</option>
-            <option>LEANDRO</option>
-            <option>TABORDA</option>
-            <option>CLODOALDO</option>
-            <option>TERCEIRIZADO</option>
-            <option>Não atribuído</option>
-          </select>
+          <select id="newAssign"></select>
         </div>
+      </div>
+      <div class="field">
+        <label class="field-label">2º responsável (opcional)</label>
+        <select id="newAssign2"></select>
       </div>
       <div class="field">
         <label class="field-label">Descrição</label>
@@ -2406,7 +2425,7 @@ body.agenda-mode .kanban-view { display: none; }
 <script type="module">
 // === FIREBASE INTEGRATION ===
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, onSnapshot, doc, updateDoc, addDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, onSnapshot, doc, getDoc, setDoc, updateDoc, addDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCsV4z3OCBlohH5GOymaM6-DYp-0H-_kUc",
@@ -2444,8 +2463,130 @@ function normSetor(s){ return (s||'').toString().normalize('NFD').replace(/[\u03
 function bucketMatch(local, bucket){ if(!bucket) return true; let L=normSetor(local); const base=L.split('·')[0].trim(); const B=normSetor(bucket); if(L===B||base===B) return true; const bp=B.split('/').map(x=>x.trim()), lp=base.split('/').map(x=>x.trim()); return bp.some(b=>lp.includes(b)); }
 
 
-// Lista de responsáveis (extraída da planilha)
-let RESPONSAVEIS = ["DOUGLAS", "Miguel Kerpel", "CLAUDIO", "Lauri", "RICARDO MANUTENÇÃO", "christopher", "MAICON", "LEANDRO", "TABORDA", "CLODOALDO", "CELSO", "ERICK", "Patrick Embalação", "Antonio Câmeras", "TERCEIRIZADO", "Daniel TI", "GABRIELA", "Thiago Mc", "Jonathan Thomé", "João Thomé", "Vitor (caseiro)", "tecnica segurança", "PPCI", "DMAE", "Não atribuído"];
+/* Lista de responsáveis. Antes existiam DUAS cópias — esta e um <select> fixo
+   no formulário — que já estavam diferentes entre si. Agora esta é a única
+   fonte, editável em Perfil e guardada em configApp/responsaveis.          */
+let RESPONSAVEIS_PADRAO = ["DOUGLAS", "Miguel Kerpel", "CLAUDIO", "Lauri", "RICARDO MANUTENÇÃO", "christopher", "MAICON", "LEANDRO", "TABORDA", "CLODOALDO", "CELSO", "ERICK", "Patrick Embalação", "Antonio Câmeras", "TERCEIRIZADO", "Daniel TI", "GABRIELA", "Thiago Mc", "Jonathan Thomé", "João Thomé", "Vitor (caseiro)", "tecnica segurança", "PPCI", "DMAE", "Não atribuído"];
+let RESPONSAVEIS = RESPONSAVEIS_PADRAO.slice();
+
+function pintarSelectsResp(){
+  ['newAssign','newAssign2'].forEach(function(id){
+    const el=document.getElementById(id);
+    if(!el) return;
+    const atual=el.value;
+    const vazio=(id==='newAssign2');
+    el.innerHTML=(vazio?'<option value="">— nenhum —</option>':'')+
+      RESPONSAVEIS.map(function(r){ return '<option value="'+r.replace(/"/g,'&quot;')+'">'+
+        r.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</option>'; }).join('');
+    if(atual && RESPONSAVEIS.indexOf(atual)>=0) el.value=atual;
+    else if(vazio) el.value='';
+  });
+}
+
+/* ===== RESPONSÁVEIS: guardados em configApp/responsaveis =====
+   O painel não tem papéis de usuário, então quem entra pode editar a lista.
+   É a mesma premissa do resto deste painel.                               */
+async function carregarResponsaveis(){
+  try{
+    const snap = await getDoc(doc(db,'configApp','responsaveis'));
+    if(snap.exists()){
+      const d=snap.data()||{};
+      if(Array.isArray(d.lista) && d.lista.length){
+        RESPONSAVEIS = d.lista.slice();
+      }
+    }
+  }catch(e){ console.warn('responsaveis:', e.code||e.message); }
+  if(!RESPONSAVEIS.length) RESPONSAVEIS = RESPONSAVEIS_PADRAO.slice();
+  pintarSelectsResp();
+  pintarListaResp();
+}
+async function gravarResponsaveis(){
+  const el=document.getElementById('rpStatus');
+  if(el) el.textContent='Salvando…';
+  try{
+    await setDoc(doc(db,'configApp','responsaveis'),
+      { lista: RESPONSAVEIS.slice(), atualizadoEm: new Date().toISOString() }, { merge:true });
+    if(el){ el.textContent='✓ Salvo'; setTimeout(()=>{ if(el.textContent==='✓ Salvo') el.textContent=''; },2200); }
+  }catch(e){
+    console.error('gravarResponsaveis:', e);
+    if(el) el.textContent='';
+    alert('Não foi possível salvar: '+(e.code||e.message));
+  }
+  pintarSelectsResp();
+  pintarListaResp();
+}
+function pintarListaResp(){
+  const host=document.getElementById('rpLista');
+  if(!host) return;
+  // quantas demandas usam cada nome, para avisar antes de remover
+  const uso={};
+  (typeof ORDERS!=='undefined'?ORDERS:[]).forEach(o=>{
+    if(o.assignee) uso[o.assignee]=(uso[o.assignee]||0)+1;
+    if(o.assignee2) uso[o.assignee2]=(uso[o.assignee2]||0)+1;
+  });
+  host.innerHTML='<div class="field-label" style="margin-bottom:8px">Na lista ('+RESPONSAVEIS.length+')</div>'+
+    RESPONSAVEIS.map((r,i)=>{
+      const n=uso[r]||0;
+      return '<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.06)">'+
+        '<span style="flex:1;font-size:13.5px">'+r.replace(/&/g,'&amp;').replace(/</g,'&lt;')+
+          (n?' <span style="font-size:11px;color:#8a8f9c">· '+n+' demanda(s)</span>':'')+'</span>'+
+        '<button class="btn btn-secondary" style="padding:5px 10px;font-size:12px" data-rp-ren="'+i+'">Renomear</button>'+
+        '<button class="btn btn-secondary" style="padding:5px 10px;font-size:12px" data-rp-del="'+i+'">Remover</button>'+
+      '</div>';
+    }).join('');
+  host.querySelectorAll('[data-rp-ren]').forEach(b=>{
+    b.addEventListener('click', ()=>renomearResp(parseInt(b.dataset.rpRen,10)));
+  });
+  host.querySelectorAll('[data-rp-del]').forEach(b=>{
+    b.addEventListener('click', ()=>removerResp(parseInt(b.dataset.rpDel,10)));
+  });
+}
+async function renomearResp(i){
+  const antigo=RESPONSAVEIS[i];
+  if(!antigo) return;
+  const novo=(prompt('Novo nome para "'+antigo+'":', antigo)||'').trim();
+  if(!novo || novo===antigo) return;
+  if(RESPONSAVEIS.some((r,j)=>j!==i && r.toLowerCase()===novo.toLowerCase())){
+    alert('Já existe "'+novo+'" na lista.'); return;
+  }
+  const afetadas=(typeof ORDERS!=='undefined'?ORDERS:[]).filter(o=>o.assignee===antigo||o.assignee2===antigo);
+  let atualizar=false;
+  if(afetadas.length){
+    atualizar=confirm(afetadas.length+' demanda(s) usam "'+antigo+'".\n\nAtualizar também nelas?\n\n'+
+      'OK = renomeia na lista E nas demandas\nCancelar = renomeia só na lista (as demandas ficam com o nome antigo)');
+  }
+  RESPONSAVEIS[i]=novo;
+  await gravarResponsaveis();
+  if(atualizar){
+    const el=document.getElementById('rpStatus');
+    let ok=0, erros=0;
+    for(const o of afetadas){
+      if(!o.firestoreId) continue;
+      const upd={};
+      if(o.assignee===antigo) upd.solicitante=novo;
+      if(o.assignee2===antigo) upd.solicitante2=novo;
+      try{
+        await updateDoc(doc(db,'chamados',o.firestoreId), upd);
+        if(o.assignee===antigo) o.assignee=novo;
+        if(o.assignee2===antigo) o.assignee2=novo;
+        ok++;
+        if(el) el.textContent='Atualizando demandas… '+ok+'/'+afetadas.length;
+      }catch(e){ erros++; console.error('renomear demanda:', e); }
+    }
+    if(el) el.textContent='';
+    alert('✓ Renomeado.\n\nDemandas atualizadas: '+ok+(erros?'\nFalhas: '+erros:''));
+    if(typeof render==='function') render();
+  }
+}
+async function removerResp(i){
+  const nome=RESPONSAVEIS[i];
+  if(!nome) return;
+  const n=(typeof ORDERS!=='undefined'?ORDERS:[]).filter(o=>o.assignee===nome||o.assignee2===nome).length;
+  if(!confirm('Remover "'+nome+'" da lista?'+
+    (n?'\n\n'+n+' demanda(s) usam esse nome. Elas continuam como estão — só não será mais possível escolher esse nome em demandas novas.':''))) return;
+  RESPONSAVEIS.splice(i,1);
+  await gravarResponsaveis();
+}
 
 function escapeId(id) {
   return id.replace(/[^a-zA-Z0-9]/g, '_');
@@ -3017,7 +3158,7 @@ function filterOrders() {
     if (state.filter === 'progress' && o.status !== 'progress') return false;
     if (state.filter === 'crit' && o.priority !== 'crit') return false;
     if (state.filter === 'high' && o.priority !== 'high') return false;
-    if (state.filter === 'minhas' && !(o.assignee.includes('Miguel') || o.assignee === 'Não atribuído')) return false;
+    if (state.filter === 'minhas' && !(o.assignee.includes('Miguel') || (o.assignee2||'').includes('Miguel') || o.assignee === 'Não atribuído')) return false;
     if (state.filter === 'hoje') {
       const same = new Date(o.deadline).toDateString() === new Date().toDateString();
       if (!same) return false;
@@ -3029,7 +3170,7 @@ function filterOrders() {
     if (state.bucket && !bucketMatch(o.local, state.bucket)) return false;
     // search
     if (q) {
-      const haystack = (o.title + ' ' + o.local + ' ' + o.assignee + ' ' + o.id + ' ' + (o.desc || '')).toLowerCase();
+      const haystack = (o.title + ' ' + o.local + ' ' + o.assignee + ' ' + (o.assignee2||'') + ' ' + o.id + ' ' + (o.desc || '')).toLowerCase();
       if (!haystack.includes(q)) return false;
     }
     // período
@@ -3099,7 +3240,7 @@ function render() {
             </span>
             <span>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a4 4 0 014-4h8a4 4 0 014 4v2"/></svg>
-              ${o.assignee}
+              ${o.assignee}${o.assignee2 ? ' + ' + o.assignee2 : ''}
             </span>
           </div>
         </div>
@@ -3236,6 +3377,31 @@ document.querySelectorAll('#prioGroup .priority-opt').forEach(p => {
   });
 });
 
+// ----- modal de responsáveis -----
+(function(){
+  const bd=document.getElementById('modalResp');
+  const nav=document.getElementById('navPerfil');
+  function abrir(){ if(bd){ bd.classList.add('open'); pintarListaResp(); const i=document.getElementById('rpNovo'); if(i) setTimeout(()=>i.focus(),80); } }
+  function fechar(){ if(bd) bd.classList.remove('open'); }
+  if(nav) nav.addEventListener('click', abrir);
+  document.querySelectorAll('[data-close-resp]').forEach(b=>b.addEventListener('click', fechar));
+  if(bd) bd.addEventListener('click', e=>{ if(e.target===bd) fechar(); });
+  const add=document.getElementById('rpAdd');
+  const inp=document.getElementById('rpNovo');
+  async function adicionar(){
+    const v=(inp.value||'').trim();
+    if(!v) return;
+    if(RESPONSAVEIS.some(r=>r.toLowerCase()===v.toLowerCase())){
+      alert('"'+v+'" já está na lista.'); return;
+    }
+    RESPONSAVEIS.push(v);
+    inp.value='';
+    await gravarResponsaveis();
+  }
+  if(add) add.addEventListener('click', adicionar);
+  if(inp) inp.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); adicionar(); } });
+})();
+
 document.getElementById('saveNew').addEventListener('click', async () => {
   const title = document.getElementById('newTitle').value.trim();
   if (!title) {
@@ -3251,6 +3417,7 @@ document.getElementById('saveNew').addEventListener('click', async () => {
   const dlInput = document.getElementById('newDeadline').value;
   const local = document.getElementById('newLocal').value || 'A definir';
   const assignee = document.getElementById('newAssign').value;
+  const assignee2 = (document.getElementById('newAssign2')||{}).value || '';
   const desc = document.getElementById('newDesc').value || '—';
 
   // Conversões para o formato do Firestore (collection `chamados`)
@@ -3290,6 +3457,7 @@ document.getElementById('saveNew').addEventListener('click', async () => {
       descricao: desc,
       setor: local,
       solicitante: assignee || 'Miguel K.',
+      solicitante2: (assignee2 && assignee2!==assignee) ? assignee2 : '',
       prioridade: prioridade,
       status: 'aberto',
       origem: 'painel',
@@ -3388,7 +3556,7 @@ function openDetail(id) {
           <div>
             <div class="detail-label">Responsável</div>
             <div class="assignee-current" id="assigneeView_${o.id.replace(/[^a-zA-Z0-9]/g,'_')}">
-              <span class="assignee-current-name">${o.assignee}</span>
+              <span class="assignee-current-name">${o.assignee}${o.assignee2 ? ' <span style="opacity:.7">+ '+o.assignee2+'</span>' : ''}</span>
               <button class="assignee-edit-btn" data-edit-assignee="${o.id}">Alterar</button>
             </div>
             <div class="assignee-edit" id="assigneeEdit_${o.id.replace(/[^a-zA-Z0-9]/g,'_')}" style="display:none;">
@@ -3994,6 +4162,7 @@ function fbToOrder(doc) {
     status: statusToOrder(c.status),
     local: c.setor || c.areaOrigem || 'Não especificado',
     assignee: c.solicitante || 'Não atribuído',
+    assignee2: c.solicitante2 || '',
     deadline: deadline,
     desc: c.descricao || '—',
     timeline: timeline,
@@ -4019,6 +4188,9 @@ function syncFirebaseOrders() {
   }
 }
 // Inicia o listener
+// carrega a lista de responsáveis antes de tudo, para os selects já nascerem certos
+carregarResponsaveis();
+
 onSnapshot(collection(db, 'chamados'), (snap) => {
   // Detectar adições novas (skip da primeira carga)
   if (!firstFirebaseLoad) {
