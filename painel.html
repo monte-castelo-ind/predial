@@ -2597,6 +2597,7 @@ function bindAssigneeEditor(orderId) {
   const editBtn = document.querySelector('[data-edit-assignee="' + orderId + '"]');
   const saveBtn = document.querySelector('[data-save-assignee="' + orderId + '"]');
   const input = document.querySelector('[data-assignee-input="' + orderId + '"]');
+  const sel2 = document.querySelector('[data-assignee2-select="' + orderId + '"]');
   const suggBox = document.querySelector('[data-suggestions="' + orderId + '"]');
   const viewBlock = document.getElementById('assigneeView_' + safeId);
   const editBlock = document.getElementById('assigneeEdit_' + safeId);
@@ -2606,6 +2607,21 @@ function bindAssigneeEditor(orderId) {
   editBtn.addEventListener('click', () => {
     viewBlock.style.display = 'none';
     editBlock.style.display = 'block';
+    // o dropdown do 2º é montado na abertura, para pegar a lista mais recente
+    if (sel2) {
+      const o = ORDERS.find(x => x.id === orderId);
+      const atual = (o && o.assignee2) || '';
+      sel2.innerHTML = '<option value="">— nenhum —</option>' +
+        RESPONSAVEIS.map(r => '<option value="' + r.replace(/"/g,'&quot;') + '"' +
+          (r === atual ? ' selected' : '') + '>' +
+          r.replace(/&/g,'&amp;').replace(/</g,'&lt;') + '</option>').join('');
+      if (atual && RESPONSAVEIS.indexOf(atual) < 0) {
+        // nome que saiu da lista continua selecionável, para não se perder
+        sel2.insertAdjacentHTML('beforeend',
+          '<option value="' + atual.replace(/"/g,'&quot;') + '" selected>' + atual + ' (fora da lista)</option>');
+      }
+      sel2.value = atual;
+    }
     input.focus();
     input.select();
     showSuggestions(input.value, orderId);
@@ -2672,35 +2688,63 @@ function showSuggestions(query, orderId) {
   });
 }
 
-function saveAssignee(orderId) {
+async function saveAssignee(orderId) {
   const input = document.querySelector('[data-assignee-input="' + orderId + '"]');
   if (!input) return;
+  const sel2 = document.querySelector('[data-assignee2-select="' + orderId + '"]');
   const newName = input.value.trim() || 'Não atribuído';
+  let newName2 = sel2 ? (sel2.value || '') : '';
+  if (newName2 === newName) newName2 = '';        // mesmo nome duas vezes não faz sentido
   const o = orders.find(x => x.id === orderId);
   if (!o) return;
 
-  if (o.assignee === newName) {
-    const safeId = escapeId(orderId);
-    document.getElementById('assigneeView_' + safeId).style.display = 'flex';
-    document.getElementById('assigneeEdit_' + safeId).style.display = 'none';
-    return;
-  }
+  const safeId = escapeId(orderId);
+  const fechar = () => {
+    const v = document.getElementById('assigneeView_' + safeId);
+    const e = document.getElementById('assigneeEdit_' + safeId);
+    if (v) v.style.display = 'flex';
+    if (e) e.style.display = 'none';
+  };
 
-  const oldName = o.assignee;
+  if (o.assignee === newName && (o.assignee2 || '') === newName2) { fechar(); return; }
+
+  const oldName = o.assignee, oldName2 = o.assignee2 || '';
   o.assignee = newName;
-  o.timeline.push({
-    time: 'Agora',
-    text: 'Responsável alterado de "' + oldName + '" para "' + newName + '"'
-  });
+  o.assignee2 = newName2;
+
+  const partes = [];
+  if (oldName !== newName) partes.push('responsável de "' + oldName + '" para "' + newName + '"');
+  if (oldName2 !== newName2) {
+    partes.push(newName2
+      ? ('2º responsável ' + (oldName2 ? 'de "' + oldName2 + '" para "' + newName2 + '"' : 'definido como "' + newName2 + '"'))
+      : ('2º responsável "' + oldName2 + '" removido'));
+  }
+  o.timeline.push({ time: 'Agora', text: 'Alterado ' + partes.join(' e ') });
 
   if (newName !== 'Não atribuído' && !RESPONSAVEIS.includes(newName)) {
     RESPONSAVEIS.unshift(newName);
+    gravarResponsaveis();          // nome digitado na hora entra na lista de todos
   }
 
+  fechar();
   openDetail(orderId);
   render();
-  if (document.body.classList.contains('kanban-mode')) {
-    renderKanban();
+  if (document.body.classList.contains('kanban-mode')) renderKanban();
+
+  /* Isto não existia: a troca de responsável só mudava na tela e voltava ao
+     valor antigo no recarregar. Prazo, setor e prioridade já gravavam.     */
+  if (o.firestoreId) {
+    try {
+      await updateDoc(doc(db, 'chamados', o.firestoreId), {
+        solicitante: newName,
+        solicitante2: newName2
+      });
+    } catch (e) {
+      console.error('saveAssignee:', e);
+      o.assignee = oldName; o.assignee2 = oldName2;
+      alert('Não foi possível salvar o responsável: ' + (e.code || e.message));
+      openDetail(orderId); render();
+    }
   }
 }
 
@@ -3565,6 +3609,10 @@ function openDetail(id) {
                 <button class="assignee-save-btn" data-save-assignee="${o.id}">OK</button>
               </div>
               <div class="assignee-suggestions" data-suggestions="${o.id}"></div>
+              <div style="margin-top:10px">
+                <div class="detail-label" style="margin-bottom:5px">2º responsável (opcional)</div>
+                <select class="assignee-input" data-assignee2-select="${o.id}" style="width:100%"></select>
+              </div>
             </div>
           </div>
           <div>
