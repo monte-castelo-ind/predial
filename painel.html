@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
-<style>
+<style>a
 :root {
   --bg: #1A1A1A;
   --bg-2: #222222;
@@ -417,7 +417,7 @@ header {
   background: var(--bg);
   border-top: 2px solid var(--ink);
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   z-index: 80;
   padding-bottom: env(safe-area-inset-bottom);
 }
@@ -1718,6 +1718,104 @@ body.agenda-mode .kanban-view { display: none; }
 
 
 
+/* === MÁQUINAS: cadastro, preventivas e histórico === */
+.maq-view { display: none; padding: 0; }
+.maq-view.active { display: block; }
+body.maq-mode .home-view, body.maq-mode .kanban-view, body.maq-mode .fab { display: none; }
+.maq-tools { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.maq-tools input, .maq-tools select {
+  background: var(--bg-2); border: 1px solid var(--line-2); border-bottom: 2px solid var(--steel);
+  color: var(--ink); padding: 9px 12px; font-family: var(--sans); font-size: 13px; outline: none;
+  flex: 1 1 160px; min-width: 0;
+}
+.maq-tools input:focus, .maq-tools select:focus { border-bottom-color: var(--orange); }
+.maq-tools .agenda-today-btn { flex: 0 0 auto; }
+.maq-chips { display: flex; gap: 6px; overflow-x: auto; margin-top: 10px; padding-bottom: 2px; }
+.maq-chip {
+  flex-shrink: 0; padding: 7px 12px; background: var(--bg-2); border: 1px solid var(--line-2);
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--ink-mute); cursor: pointer;
+}
+.maq-chip:hover { color: var(--ink); border-color: var(--steel); }
+.maq-chip.active { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.maq-corpo { padding: 16px 22px 24px; }
+.maq-secao {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 0.25em; text-transform: uppercase;
+  color: var(--ink-mute); margin: 6px 0 10px;
+}
+.maq-tag {
+  display: inline-block; font-family: var(--mono); font-size: 9px; letter-spacing: 0.15em;
+  text-transform: uppercase; padding: 3px 7px; border: 1px solid currentColor; white-space: nowrap; font-weight: 600;
+}
+.maq-tag.st-vencida { color: var(--red); }
+.maq-tag.st-vence, .maq-tag.st-nunca { color: var(--yellow); }
+.maq-tag.st-ok { color: var(--green); }
+.maq-tag.st-sem { color: var(--ink-mute); }
+.maq-tag.st-parada { color: var(--red); background: rgba(193,63,63,0.12); }
+.maq-tag.st-desat { color: var(--ink-faint); }
+.maq-tag.tp-prev { color: var(--blue); }
+.maq-tag.tp-corr { color: var(--orange); }
+.maq-tag.tp-os { color: var(--ink-mute); }
+.maq-alertas { display: flex; flex-direction: column; gap: 6px; margin-bottom: 22px; }
+.maq-alerta {
+  display: flex; align-items: center; gap: 12px; background: var(--bg-2); border: 1px solid var(--line);
+  border-left: 3px solid var(--yellow); padding: 10px 12px; cursor: pointer;
+}
+.maq-alerta.st-vencida { border-left-color: var(--red); }
+.maq-alerta:hover { border-color: var(--line-2); }
+.maq-al-info { flex: 1; min-width: 0; font-size: 13px; }
+.maq-al-info b { font-weight: 700; }
+.maq-al-sub { font-family: var(--mono); font-size: 10px; color: var(--ink-mute); margin-top: 3px; letter-spacing: .03em; }
+.maq-bt {
+  background: transparent; color: var(--ink); border: 1px solid var(--line-2); padding: 8px 11px;
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase;
+  cursor: pointer; white-space: nowrap; flex-shrink: 0;
+}
+.maq-bt:hover { border-color: var(--orange); color: var(--orange); }
+.maq-bt.pri { background: var(--orange); color: var(--bg); border-color: var(--orange); }
+.maq-bt.pri:hover { background: var(--orange-soft); color: var(--paper); }
+.maq-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; }
+.maq-card {
+  background: var(--bg-2); border: 1px solid var(--line); padding: 14px; cursor: pointer;
+  display: flex; flex-direction: column; gap: 6px; min-width: 0;
+}
+.maq-card:hover { border-color: var(--line-2); }
+.maq-card.desat { opacity: 0.55; }
+.maq-card-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.maq-cod { font-family: var(--mono); font-size: 10px; color: var(--ink-mute); letter-spacing: .1em; }
+.maq-card-nome { font-family: var(--display); font-size: 14px; text-transform: uppercase; line-height: 1.25; overflow-wrap: anywhere; }
+.maq-card-sub { font-size: 12px; color: var(--ink-mute); overflow-wrap: anywhere; }
+.maq-card-rod { font-family: var(--mono); font-size: 10px; color: var(--ink-mute); border-top: 1px solid var(--line); padding-top: 8px; margin-top: 2px; }
+.maq-vazio { color: var(--ink-mute); font-size: 13px; padding: 26px 0; text-align: center; line-height: 1.6; }
+.maq-info { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 18px; }
+.maq-info .detail-value { overflow-wrap: anywhere; }
+.maq-linha { display: flex; gap: 10px; align-items: flex-start; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.maq-linha:last-child { border-bottom: none; }
+.maq-linha-info { flex: 1; min-width: 0; font-size: 13px; line-height: 1.45; }
+.maq-linha-info .maq-al-sub { margin-top: 4px; }
+.maq-linha-acoes { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.maq-cab { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 4px; flex-wrap: wrap; }
+.maq-cab .detail-label { margin: 0; }
+.maq-resumo { font-family: var(--mono); font-size: 10px; color: var(--ink-mute); margin: 2px 0 6px; letter-spacing: .03em; }
+.maq-erro { color: var(--red); font-size: 13px; padding: 12px 0; }
+.maq-dica { font-size: 11px; color: var(--ink-mute); margin-top: 6px; line-height: 1.5; }
+.maq-vinc { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.maq-vinc select {
+  flex: 1 1 200px; background: var(--bg-2); border: 1px solid var(--line-2); color: var(--ink);
+  padding: 9px 10px; font-family: var(--sans); font-size: 13px; min-width: 0;
+}
+.nav-badge {
+  display: inline-block; min-width: 15px; padding: 0 4px; margin-left: 3px; background: var(--red);
+  color: #fff; border-radius: 8px; font-size: 9px; line-height: 15px; letter-spacing: 0; vertical-align: 1px;
+}
+@media (max-width: 600px) {
+  .maq-corpo { padding: 14px 14px 24px; }
+  .maq-info { grid-template-columns: 1fr; }
+  .maq-alerta { flex-wrap: wrap; }
+  .maq-linha { flex-wrap: wrap; }
+  .maq-linha-acoes { width: 100%; justify-content: flex-start; }
+}
+
 /* === FOTOS NO PAINEL === */
 .photo-gallery-painel {
   display: grid;
@@ -2291,6 +2389,30 @@ body.agenda-mode .kanban-view { display: none; }
     </div>
   </section>
 
+  <section class="maq-view" id="maqView">
+    <div class="agenda-toolbar">
+      <div class="agenda-title-row">
+        <div class="agenda-title">Máquinas</div>
+        <div class="agenda-title-meta" id="maqMeta">carregando…</div>
+      </div>
+      <div class="maq-tools">
+        <input type="text" id="maqBusca" placeholder="Buscar máquina, código, fabricante…" oninput="maqSetBusca(this.value)">
+        <select id="maqSetor" onchange="maqSetSetor(this.value)"><option value="">Todos os setores</option><option value="ADMINISTRATIVO">ADMINISTRATIVO</option><option value="CONFEITARIA">CONFEITARIA</option><option value="COZINHA/CONF">COZINHA/CONF</option><option value="DIRETORIA">DIRETORIA</option><option value="EMBALAÇÃO">EMBALAÇÃO</option><option value="EXPEDIÇÃO">EXPEDIÇÃO</option><option value="FROTA">FROTA</option><option value="LIMPEZA">LIMPEZA</option><option value="PANIFICAÇÃO">PANIFICAÇÃO</option><option value="PREDIAL">PREDIAL</option><option value="RECEBIMENTO">RECEBIMENTO</option><option value="REFEITÓRIO">REFEITÓRIO</option><option value="OUTRO">OUTRO</option></select>
+        <button class="agenda-today-btn" onclick="maqNova()">+ Máquina</button>
+      </div>
+      <div class="maq-chips" id="maqChips">
+        <button class="maq-chip active" data-maqf="todas" onclick="maqSetFiltro('todas')">Todas</button>
+        <button class="maq-chip" data-maqf="alerta" onclick="maqSetFiltro('alerta')">Com alerta</button>
+        <button class="maq-chip" data-maqf="parada" onclick="maqSetFiltro('parada')">Paradas</button>
+        <button class="maq-chip" data-maqf="desativada" onclick="maqSetFiltro('desativada')">Desativadas</button>
+      </div>
+    </div>
+    <div class="maq-corpo">
+      <div id="maqAlertas"></div>
+      <div id="maqLista"></div>
+    </div>
+  </section>
+
 </main>
 
 <button class="fab" id="fabNew" aria-label="Nova demanda">+</button>
@@ -2307,6 +2429,10 @@ body.agenda-mode .kanban-view { display: none; }
   <button class="nav-item" id="navKanban">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="5" height="18" rx="0.5"/><rect x="10" y="3" width="5" height="12" rx="0.5"/><rect x="17" y="3" width="4" height="8" rx="0.5"/></svg>
     Kanban
+  </button>
+  <button class="nav-item" id="navMaq">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>
+    <span>Máquinas<span class="nav-badge" id="navMaqBadge" style="display:none"></span></span>
   </button>
   <button class="nav-item" id="navPerfil">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a4 4 0 014-4h8a4 4 0 014 4v2"/></svg>
@@ -2384,6 +2510,10 @@ body.agenda-mode .kanban-view { display: none; }
         </div>
       </div>
       <div class="field">
+        <label class="field-label">Máquina (opcional)</label>
+        <select id="newMaq" onchange="maqNovaDemandaEscolheu(this.value)"><option value="">— nenhuma —</option></select>
+      </div>
+      <div class="field">
         <label class="field-label">Prioridade</label>
         <div class="priority-group" id="prioGroup">
           <button class="priority-opt" data-prio="low">Baixa</button>
@@ -2418,6 +2548,10 @@ body.agenda-mode .kanban-view { display: none; }
   </div>
 </div>
 
+<div class="modal-backdrop" id="modalMaq" onclick="if(event.target===this) maqFechar()">
+  <div class="modal" id="maqModalConteudo"></div>
+</div>
+
 <div class="modal-backdrop" id="modalDetail">
   <div class="modal" id="detailContent"></div>
 </div>
@@ -2425,7 +2559,8 @@ body.agenda-mode .kanban-view { display: none; }
 <script type="module">
 // === FIREBASE INTEGRATION ===
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, onSnapshot, doc, getDoc, setDoc, updateDoc, addDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, onSnapshot, doc, getDoc, setDoc, updateDoc, addDoc, deleteDoc, query, orderBy, limit, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth as getAuthMaq } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCsV4z3OCBlohH5GOymaM6-DYp-0H-_kUc",
@@ -3412,6 +3547,7 @@ document.querySelectorAll('.stat[data-stat-filter]').forEach(s => {
 
 const modalNew = document.getElementById('modalNew');
 document.getElementById('fabNew').addEventListener('click', () => {
+  maqPintaSelectNovo();
   modalNew.classList.add('open');
   const d = new Date(Date.now() + 4*60*60*1000);
   d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
@@ -3479,6 +3615,8 @@ document.getElementById('saveNew').addEventListener('click', async () => {
   const assignee = document.getElementById('newAssign').value;
   const assignee2 = (document.getElementById('newAssign2')||{}).value || '';
   const desc = document.getElementById('newDesc').value || '—';
+  const maqIdNovo = (document.getElementById('newMaq')||{}).value || '';
+  const maqNomeNovo = maqIdNovo ? maqNomeDe(maqIdNovo) : '';
 
   // Conversões para o formato do Firestore (collection `chamados`)
   const prioMap = { crit: 'Urgente', high: 'Alta', med: 'Normal', low: 'Normal' };
@@ -3530,7 +3668,9 @@ document.getElementById('saveNew').addEventListener('click', async () => {
         acao: 'Demanda criada pelo painel',
         obs: ''
       }],
-      fotos: []
+      fotos: [],
+      maquinaId: maqIdNovo,
+      maquinaNome: maqNomeNovo
     });
     // O onSnapshot vai sincronizar automaticamente e chamar render()
   } catch (err) {
@@ -3544,6 +3684,7 @@ document.getElementById('saveNew').addEventListener('click', async () => {
   document.getElementById('newTitle').value = '';
   document.getElementById('newLocal').selectedIndex = 0;
   document.getElementById('newDesc').value = '';
+  if (document.getElementById('newMaq')) document.getElementById('newMaq').value = '';
   modalNew.classList.remove('open');
   btn.disabled = false;
   btn.textContent = originalLabel;
@@ -3580,6 +3721,7 @@ function openDetail(id) {
         <button class="priority-cancel-btn" data-cancel-priority="${o.id}">Cancelar</button>
       </div>
 
+      ${maqBlocoChamado(o)}
       <div class="detail-section">
         <div class="detail-grid">
           <div>
@@ -4236,7 +4378,9 @@ function fbToOrder(doc) {
     origem: c.origem || 'chamado',
     areaOrigem: c.areaOrigem || null,
     solicitante: c.solicitante || '',
-    fotos: c.fotos || []
+    fotos: c.fotos || [],
+    maquinaId: c.maquinaId || '',
+    maquinaNome: c.maquinaNome || ''
   };
 }
 
@@ -4519,11 +4663,582 @@ document.getElementById('agendaTodayBtn').addEventListener('click', () => {
 });
 
 // Atualizar switchView pra suportar agenda
+// === MÁQUINAS: cadastro, planos de preventiva e histórico ===
+/* Coleções no projeto do Predial:
+     maquinas/{id}     cadastro da máquina + planos de preventiva (array "planos")
+     manutencoes/{id}  o que foi feito: preventiva ou corretiva, data, quem, parada, custo
+   Chamado (OS) pode apontar para uma máquina: maquinaId/maquinaNome no próprio
+   chamado. Ele entra no histórico da máquina lido direto dos chamados, SEM cópia
+   em manutencoes — um serviço, um registro, nada para ficar divergente.
+   Periodicidade só por tempo (dias/semanas/meses). A próxima data conta da
+   ÚLTIMA EXECUÇÃO, não da data prevista: preventiva feita com atraso não deixa
+   a seguinte já vencida. Vencida é só alerta aqui: não abre chamado sozinha.
+   Máquina não se apaga, se desativa: o histórico dela tem que continuar. */
+let maquinas = [];
+let manutencoes = [];
+let maqCarregou = false, maqErroLeitura = '';
+const maqState = { busca: '', setor: '', filtro: 'todas', aberta: '' };
+const MAQ_AVISO_DIAS = 7;
+const MAQ_SETORES = ['ADMINISTRATIVO','CONFEITARIA','COZINHA/CONF','DIRETORIA','EMBALAÇÃO','EXPEDIÇÃO',
+                     'FROTA','LIMPEZA','PANIFICAÇÃO','PREDIAL','RECEBIMENTO','REFEITÓRIO','OUTRO'];
+const MAQ_SITUACOES = { ativa: 'Ativa', parada: 'Parada', desativada: 'Desativada' };
+
+function maqEsc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+function maqNorm(s) { return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase(); }
+function maqDataParaISO(d) {
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+function maqHojeISO() { return maqDataParaISO(new Date()); }
+/* data sempre no fuso local, nunca new Date('AAAA-MM-DD') (que é UTC e volta um dia) */
+function maqISOparaData(iso) {
+  const p = String(iso || '').split('-');
+  if (p.length !== 3) return null;
+  const d = new Date(+p[0], +p[1] - 1, +p[2]);
+  return isNaN(d) ? null : d;
+}
+function maqBR(iso) {
+  const d = maqISOparaData(iso);
+  return d ? String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + '/' + d.getFullYear() : '—';
+}
+function maqSomaPeriodo(iso, n, un) {
+  const d = maqISOparaData(iso); if (!d) return null;
+  n = parseInt(n, 10) || 0;
+  if (un === 'dias') d.setDate(d.getDate() + n);
+  else if (un === 'semanas') d.setDate(d.getDate() + 7 * n);
+  else {                                   /* meses: 31/01 + 1 mês = 28 ou 29/02 */
+    const dia = d.getDate();
+    d.setDate(1); d.setMonth(d.getMonth() + n);
+    const ult = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+    d.setDate(Math.min(dia, ult));
+  }
+  return maqDataParaISO(d);
+}
+function maqDiasAte(iso) {
+  const d = maqISOparaData(iso), h = maqISOparaData(maqHojeISO());
+  return d ? Math.round((d - h) / 86400000) : null;
+}
+function maqPeriodoTxt(p) {
+  const n = parseInt(p.n, 10) || 0;
+  const u = { dias: ['dia', 'dias'], semanas: ['semana', 'semanas'], meses: ['mês', 'meses'] }[p.unidade] || ['', ''];
+  return 'a cada ' + n + ' ' + (n === 1 ? u[0] : u[1]);
+}
+function maqMoeda(v) { return 'R$ ' + (Number(v) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function maqNum(v) { const n = parseFloat(String(v == null ? '' : v).replace(',', '.')); return isFinite(n) ? n : 0; }
+
+/* situação de um plano. ordem: o que aparece primeiro na lista de alertas */
+function maqPlanoInfo(p) {
+  if (!p.ultimaEm) return { st: 'nunca', rot: 'Sem registro', txt: 'ainda sem execução registrada', proxima: null, dias: null, ordem: 1 };
+  const prox = maqSomaPeriodo(p.ultimaEm, p.n, p.unidade), dias = maqDiasAte(prox);
+  if (dias < 0) return { st: 'vencida', rot: 'Vencida', txt: 'venceu há ' + (-dias) + (dias === -1 ? ' dia' : ' dias'), proxima: prox, dias, ordem: 0 };
+  if (dias <= MAQ_AVISO_DIAS) {
+    const t = dias === 0 ? 'vence hoje' : 'vence em ' + dias + (dias === 1 ? ' dia' : ' dias');
+    return { st: 'vence', rot: dias === 0 ? 'Vence hoje' : 'Em ' + dias + (dias === 1 ? ' dia' : ' dias'), txt: t, proxima: prox, dias, ordem: 2 };
+  }
+  return { st: 'ok', rot: 'Em dia', txt: 'próxima em ' + maqBR(prox), proxima: prox, dias, ordem: 3 };
+}
+function maqPlanosAtivos(m) { return (m.planos || []).filter(p => p && p.ativo !== false); }
+/* pior situação da máquina — desativada não gera alerta */
+function maqPior(m) {
+  if (m.situacao === 'desativada') return null;
+  let pior = null;
+  maqPlanosAtivos(m).forEach(p => { const i = maqPlanoInfo(p); if (!pior || i.ordem < pior.ordem) pior = i; });
+  return pior;
+}
+function maqAchar(id) { return maquinas.find(m => m.id === id) || null; }
+function maqNomeDe(id) {
+  const m = maqAchar(id); if (!m) return '';
+  return m.nome + (m.codigo ? ' (' + m.codigo + ')' : '');
+}
+function maqQuem() {
+  try { const u = getAuthMaq(fbApp).currentUser; return u && u.email ? u.email : ''; } catch (e) { return ''; }
+}
+function maqRespOpts(sel) {
+  const lista = (typeof RESPONSAVEIS !== 'undefined' && RESPONSAVEIS.length) ? RESPONSAVEIS : [];
+  return '<option value="">—</option>' + lista.map(r =>
+    '<option value="' + maqEsc(r) + '"' + (r === sel ? ' selected' : '') + '>' + maqEsc(r) + '</option>').join('')
+    + (sel && lista.indexOf(sel) < 0 ? '<option value="' + maqEsc(sel) + '" selected>' + maqEsc(sel) + '</option>' : '');
+}
+
+/* ---- leitura ---- */
+onSnapshot(collection(db, 'maquinas'), snap => {
+  maquinas = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  maqCarregou = true; maqErroLeitura = '';
+  maqAtualizar();
+}, e => {
+  console.error('maquinas:', e);
+  maqCarregou = true;
+  maqErroLeitura = 'Não foi possível ler as máquinas (' + (e.code || e.message) + ').';
+  maqAtualizar();
+});
+/* histórico mais recente primeiro; o limite evita ler a coleção inteira a cada abertura */
+onSnapshot(query(collection(db, 'manutencoes'), orderBy('data', 'desc'), limit(1500)), snap => {
+  manutencoes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  maqAtualizar();
+}, e => { console.error('manutencoes:', e); });
+
+function maqAtualizar() {
+  /* contador na barra de baixo: planos vencidos */
+  const b = document.getElementById('navMaqBadge');
+  if (b) {
+    let n = 0;
+    maquinas.forEach(m => { if (m.situacao !== 'desativada') maqPlanosAtivos(m).forEach(p => { if (maqPlanoInfo(p).st === 'vencida') n++; }); });
+    b.textContent = n; b.style.display = n ? '' : 'none';
+    b.title = n ? n + ' preventiva(s) vencida(s)' : '';
+  }
+  if (document.body.classList.contains('maq-mode')) maqRender();
+  /* máquina aberta na janela: redesenha com o dado novo (só a tela de detalhe) */
+  if (maqState.aberta && document.getElementById('maqDetalheAberto')) maqAbrir(maqState.aberta);
+}
+
+/* ---- tela principal ---- */
+window.maqSetBusca = function (v) { maqState.busca = v || ''; maqRender(); };
+window.maqSetSetor = function (v) { maqState.setor = v || ''; maqRender(); };
+window.maqSetFiltro = function (f) {
+  maqState.filtro = f;
+  document.querySelectorAll('#maqChips .maq-chip').forEach(c => c.classList.toggle('active', c.getAttribute('data-maqf') === f));
+  maqRender();
+};
+function maqFiltradas() {
+  const q = maqNorm(maqState.busca).trim();
+  return maquinas.filter(m => {
+    const sit = m.situacao || 'ativa';
+    if (maqState.filtro === 'desativada') { if (sit !== 'desativada') return false; }
+    else if (sit === 'desativada') return false;
+    if (maqState.filtro === 'parada' && sit !== 'parada') return false;
+    if (maqState.filtro === 'alerta') { const p = maqPior(m); if (!p || p.ordem > 2) return false; }
+    if (maqState.setor && normSetor(m.setor) !== normSetor(maqState.setor)) return false;
+    if (q && maqNorm([m.nome, m.codigo, m.fabricante, m.modelo, m.serie, m.setor].join(' ')).indexOf(q) < 0) return false;
+    return true;
+  }).sort((a, b) => {
+    const pa = maqPior(a), pb = maqPior(b);
+    const oa = pa ? pa.ordem : 9, ob = pb ? pb.ordem : 9;
+    if (oa !== ob) return oa - ob;
+    return String(a.nome || '').localeCompare(String(b.nome || ''), 'pt-BR');
+  });
+}
+function maqUltimaManut(mid) {
+  let ult = '';
+  manutencoes.forEach(x => { if (x.maquinaId === mid && x.data > ult) ult = x.data; });
+  return ult;
+}
+function maqRender() {
+  const meta = document.getElementById('maqMeta'), al = document.getElementById('maqAlertas'), li = document.getElementById('maqLista');
+  if (!li) return;
+  if (!maqCarregou) { li.innerHTML = '<div class="maq-vazio">Carregando…</div>'; return; }
+  if (maqErroLeitura) { al.innerHTML = ''; li.innerHTML = '<div class="maq-erro">' + maqEsc(maqErroLeitura) + '</div>'; return; }
+
+  const ativas = maquinas.filter(m => (m.situacao || 'ativa') !== 'desativada');
+  let venc = 0, prox = 0;
+  const alertas = [];
+  ativas.forEach(m => maqPlanosAtivos(m).forEach(p => {
+    const i = maqPlanoInfo(p);
+    if (i.st === 'vencida') venc++;
+    if (i.st === 'vence') prox++;
+    if (i.ordem <= 2) alertas.push({ m, p, i });
+  }));
+  meta.textContent = ativas.length + (ativas.length === 1 ? ' máquina' : ' máquinas')
+    + ' · ' + venc + (venc === 1 ? ' vencida' : ' vencidas') + ' · ' + prox + ' em até ' + MAQ_AVISO_DIAS + ' dias';
+
+  const lista = maqFiltradas();
+  const ids = {}; lista.forEach(m => { ids[m.id] = 1; });
+  const alVis = alertas.filter(a => ids[a.m.id])
+    .sort((x, y) => (x.i.ordem - y.i.ordem) || ((x.i.dias == null ? -1e9 : x.i.dias) - (y.i.dias == null ? -1e9 : y.i.dias)));
+
+  if (alVis.length && maqState.filtro !== 'desativada') {
+    al.innerHTML = '<div class="maq-secao">Preventivas para fazer (' + alVis.length + ')</div><div class="maq-alertas">'
+      + alVis.map(a => '<div class="maq-alerta st-' + a.i.st + '" onclick="maqAbrir(\'' + a.m.id + '\')">'
+        + '<span class="maq-tag st-' + a.i.st + '">' + maqEsc(a.i.rot) + '</span>'
+        + '<div class="maq-al-info"><b>' + maqEsc(a.m.nome) + '</b> · ' + maqEsc(a.p.descricao)
+        + '<div class="maq-al-sub">' + maqEsc(a.m.setor || '') + ' · ' + maqEsc(maqPeriodoTxt(a.p)) + ' · ' + maqEsc(a.i.txt) + '</div></div>'
+        + '<button class="maq-bt" onclick="event.stopPropagation();maqRegistrar(\'' + a.m.id + '\',\'preventiva\',\'' + a.p.id + '\')">✓ Feita</button>'
+        + '</div>').join('') + '</div>';
+  } else al.innerHTML = '';
+
+  if (!maquinas.length) {
+    li.innerHTML = '<div class="maq-vazio">Nenhuma máquina cadastrada ainda.<br>Comece pelo botão <b>+ Máquina</b>.</div>';
+    return;
+  }
+  if (!lista.length) { li.innerHTML = '<div class="maq-vazio">Nenhuma máquina neste filtro.</div>'; return; }
+  li.innerHTML = '<div class="maq-secao">Máquinas (' + lista.length + ')</div><div class="maq-grid">' + lista.map(m => {
+    const sit = m.situacao || 'ativa', pior = maqPior(m), np = maqPlanosAtivos(m).length, ult = maqUltimaManut(m.id);
+    let tag;
+    if (sit === 'desativada') tag = '<span class="maq-tag st-desat">Desativada</span>';
+    else if (sit === 'parada') tag = '<span class="maq-tag st-parada">Parada</span>';
+    else if (pior) tag = '<span class="maq-tag st-' + pior.st + '">' + maqEsc(pior.rot) + '</span>';
+    else tag = '<span class="maq-tag st-sem">Sem plano</span>';
+    return '<div class="maq-card' + (sit === 'desativada' ? ' desat' : '') + '" onclick="maqAbrir(\'' + m.id + '\')">'
+      + '<div class="maq-card-top"><span class="maq-cod">' + maqEsc(m.codigo || '—') + '</span>' + tag + '</div>'
+      + '<div class="maq-card-nome">' + maqEsc(m.nome) + '</div>'
+      + '<div class="maq-card-sub">' + maqEsc(m.setor || '') + ([m.fabricante, m.modelo].filter(Boolean).length ? ' · ' + maqEsc([m.fabricante, m.modelo].filter(Boolean).join(' ')) : '') + '</div>'
+      + '<div class="maq-card-rod">' + np + (np === 1 ? ' plano' : ' planos') + ' · ' + (ult ? 'última manutenção ' + maqBR(ult) : 'sem manutenção registrada') + '</div>'
+      + '</div>';
+  }).join('') + '</div>';
+}
+
+/* ---- janela ---- */
+function maqJanela(html) {
+  document.getElementById('maqModalConteudo').innerHTML = html;
+  document.getElementById('modalMaq').classList.add('open');
+}
+window.maqFechar = function () {
+  document.getElementById('modalMaq').classList.remove('open');
+  maqState.aberta = '';
+};
+function maqCabecalho(sup, titulo, voltar) {
+  return '<div class="modal-head"><div>'
+    + (sup ? '<div style="font-family:var(--mono);font-size:9px;letter-spacing:0.25em;color:var(--ink-mute);margin-bottom:6px;">' + sup + '</div>' : '')
+    + '<div class="modal-title">' + titulo + '</div></div>'
+    + '<button class="modal-close" onclick="' + (voltar ? voltar : 'maqFechar()') + '">' + (voltar ? '‹' : '✕') + '</button></div>';
+}
+
+/* ---- detalhe da máquina ---- */
+window.maqAbrir = function (id) {
+  const m = maqAchar(id); if (!m) return;
+  maqState.aberta = id;
+  const sit = m.situacao || 'ativa';
+  const planos = maqPlanosAtivos(m).map(p => ({ p, i: maqPlanoInfo(p) })).sort((a, b) => a.i.ordem - b.i.ordem);
+
+  /* histórico: registros do módulo + chamados vinculados, do mais novo ao mais antigo */
+  const hist = [];
+  manutencoes.filter(x => x.maquinaId === id).forEach(x => hist.push({ quando: x.data || '', k: 'm', x }));
+  (typeof orders !== 'undefined' ? orders : []).filter(o => o.maquinaId === id).forEach(o => {
+    const c = o.createdAt instanceof Date ? maqDataParaISO(o.createdAt) : '';
+    hist.push({ quando: c, k: 'c', o });
+  });
+  hist.sort((a, b) => String(b.quando).localeCompare(String(a.quando)));
+
+  /* resumo de 12 meses: é o que mostra se a máquina está quebrando demais */
+  const ano = new Date(); ano.setFullYear(ano.getFullYear() - 1);
+  const corte = maqDataParaISO(ano);
+  let nCorr = 0, horas = 0, custo = 0, nCham = 0;
+  hist.forEach(h => {
+    if (h.quando < corte) return;
+    if (h.k === 'm') { if (h.x.tipo === 'corretiva') nCorr++; horas += maqNum(h.x.paradaHoras); custo += maqNum(h.x.custo); }
+    else nCham++;
+  });
+
+  let h = maqCabecalho(maqEsc((m.codigo ? m.codigo + ' · ' : '') + (m.setor || '')), maqEsc(m.nome));
+  h += '<div class="modal-body" id="maqDetalheAberto">';
+  h += '<div class="detail-section" style="padding-top:0"><div class="maq-info">'
+    + '<div><div class="detail-label">Situação</div><div class="detail-value">'
+    + '<select onchange="maqMudaSituacao(\'' + id + '\',this.value)" style="background:var(--bg-2);border:1px solid var(--line-2);color:var(--ink);padding:7px 9px;font-family:var(--sans);font-size:13px">'
+    + Object.keys(MAQ_SITUACOES).map(k => '<option value="' + k + '"' + (k === sit ? ' selected' : '') + '>' + MAQ_SITUACOES[k] + '</option>').join('')
+    + '</select></div></div>'
+    + '<div><div class="detail-label">Fabricante / modelo</div><div class="detail-value">' + maqEsc([m.fabricante, m.modelo].filter(Boolean).join(' · ') || '—') + '</div></div>'
+    + '<div><div class="detail-label">Nº de série</div><div class="detail-value">' + maqEsc(m.serie || '—') + '</div></div>'
+    + '<div><div class="detail-label">Instalada em</div><div class="detail-value">' + maqBR(m.instaladaEm) + '</div></div>'
+    + (m.obs ? '<div style="grid-column:1/-1"><div class="detail-label">Observações</div><div class="detail-value" style="white-space:pre-wrap">' + maqEsc(m.obs) + '</div></div>' : '')
+    + '</div><div style="margin-top:14px"><button class="maq-bt" onclick="maqEditar(\'' + id + '\')">Editar cadastro</button></div></div>';
+
+  h += '<div class="detail-section"><div class="maq-cab"><div class="detail-label">Planos de preventiva</div>'
+    + '<button class="maq-bt" onclick="maqPlanoForm(\'' + id + '\',\'\')">+ Plano</button></div>';
+  if (!planos.length) h += '<div class="maq-dica">Nenhum plano ainda. Ex.: "Lubrificar correntes — a cada 15 dias".</div>';
+  h += planos.map(({ p, i }) => '<div class="maq-linha">'
+    + '<span class="maq-tag st-' + (sit === 'desativada' ? 'desat' : i.st) + '">' + maqEsc(sit === 'desativada' ? 'Pausado' : i.rot) + '</span>'
+    + '<div class="maq-linha-info"><b>' + maqEsc(p.descricao) + '</b>'
+    + '<div class="maq-al-sub">' + maqEsc(maqPeriodoTxt(p)) + ' · ' + (p.ultimaEm ? 'última ' + maqBR(p.ultimaEm) + ' · próxima ' + maqBR(i.proxima) : 'sem execução registrada') + '</div>'
+    + (p.instrucoes ? '<div class="maq-dica" style="white-space:pre-wrap">' + maqEsc(p.instrucoes) + '</div>' : '') + '</div>'
+    + '<div class="maq-linha-acoes"><button class="maq-bt pri" onclick="maqRegistrar(\'' + id + '\',\'preventiva\',\'' + p.id + '\')">✓ Feita</button>'
+    + '<button class="maq-bt" onclick="maqPlanoForm(\'' + id + '\',\'' + p.id + '\')">Editar</button></div>'
+    + '</div>').join('');
+  h += '</div>';
+
+  h += '<div class="detail-section"><div class="maq-cab"><div class="detail-label">Histórico</div>'
+    + '<button class="maq-bt" onclick="maqRegistrar(\'' + id + '\',\'corretiva\',\'\')">+ Corretiva</button></div>'
+    + '<div class="maq-resumo">Últimos 12 meses: ' + nCorr + (nCorr === 1 ? ' corretiva' : ' corretivas') + ' registrada' + (nCorr === 1 ? '' : 's')
+    + ' · ' + nCham + (nCham === 1 ? ' chamado' : ' chamados') + ' · ' + String(Math.round(horas * 10) / 10).replace('.', ',') + ' h parada'
+    + (custo ? ' · ' + maqMoeda(custo) : '') + '</div>';
+  if (!hist.length) h += '<div class="maq-dica">Nada registrado ainda para esta máquina.</div>';
+  h += hist.slice(0, 60).map(it => {
+    if (it.k === 'c') {
+      const o = it.o;
+      return '<div class="maq-linha"><span class="maq-tag tp-os">Chamado</span>'
+        + '<div class="maq-linha-info"><b>' + maqEsc(o.title) + '</b><div class="maq-al-sub">' + maqBR(it.quando) + ' · ' + maqEsc(statusLabel(o.status)) + ' · ' + maqEsc(o.assignee || '') + ' · ' + maqEsc(o.id) + '</div></div>'
+        + '<div class="maq-linha-acoes"><button class="maq-bt" onclick="maqAbrirChamado(\'' + maqEsc(o.id) + '\')">Abrir</button></div></div>';
+    }
+    const x = it.x, prev = x.tipo === 'preventiva';
+    const extra = [];
+    if (maqNum(x.paradaHoras)) extra.push(String(maqNum(x.paradaHoras)).replace('.', ',') + ' h parada');
+    if (maqNum(x.custo)) extra.push(maqMoeda(x.custo));
+    return '<div class="maq-linha"><span class="maq-tag ' + (prev ? 'tp-prev">Preventiva' : 'tp-corr">Corretiva') + '</span>'
+      + '<div class="maq-linha-info"><b>' + maqEsc(prev ? (x.planoDesc || 'Preventiva') : (x.descricao || 'Corretiva')) + '</b>'
+      + (prev && x.descricao ? '<div class="maq-dica" style="margin-top:3px">' + maqEsc(x.descricao) + '</div>' : '')
+      + (x.pecas ? '<div class="maq-dica" style="margin-top:3px">Peças: ' + maqEsc(x.pecas) + '</div>' : '')
+      + '<div class="maq-al-sub">' + maqBR(x.data) + (x.responsavel ? ' · ' + maqEsc(x.responsavel) : '') + (extra.length ? ' · ' + extra.join(' · ') : '') + '</div></div>'
+      + '<div class="maq-linha-acoes"><button class="maq-bt" title="Apagar registro lançado errado" onclick="maqApagarRegistro(\'' + x.id + '\')">×</button></div></div>';
+  }).join('');
+  if (hist.length > 60) h += '<div class="maq-dica">Mostrando os 60 mais recentes de ' + hist.length + '.</div>';
+  h += '</div></div>';
+  maqJanela(h);
+};
+window.maqAbrirChamado = function (oid) { maqFechar(); openDetail(oid); };
+
+window.maqMudaSituacao = function (id, v) {
+  const m = maqAchar(id); if (!m || m.situacao === v) return;
+  updateDoc(doc(db, 'maquinas', id), { situacao: v, atualizadoEm: new Date().toISOString(), atualizadoPor: maqQuem() })
+    .catch(e => { console.error('maquinas/situacao:', e); alert('Não foi possível mudar a situação: ' + (e.code || e.message)); maqAbrir(id); });
+};
+
+/* ---- cadastro ---- */
+window.maqNova = function () { maqForm(''); };
+window.maqEditar = function (id) { maqForm(id); };
+function maqForm(id) {
+  const m = id ? maqAchar(id) : {};
+  if (id && !m) return;
+  maqState.aberta = id || '';
+  const v = k => maqEsc((m && m[k]) || '');
+  let h = maqCabecalho(id ? 'EDITAR MÁQUINA' : 'NOVA MÁQUINA', id ? maqEsc(m.nome) : 'Cadastro', id ? "maqAbrir('" + id + "')" : '');
+  h += '<div class="modal-body">'
+    + '<div class="field"><label class="field-label">Nome *</label><input id="mqNome" value="' + v('nome') + '" placeholder="Ex.: Masseira espiral 1"></div>'
+    + '<div class="field-row"><div class="field"><label class="field-label">Código / patrimônio</label><input id="mqCod" value="' + v('codigo') + '" placeholder="Ex.: MQ-012"></div>'
+    + '<div class="field"><label class="field-label">Setor *</label><select id="mqSetor"><option value="">—</option>'
+    + MAQ_SETORES.map(x => '<option value="' + x + '"' + (m && normSetor(m.setor) === normSetor(x) ? ' selected' : '') + '>' + x + '</option>').join('') + '</select></div></div>'
+    + '<div class="field-row"><div class="field"><label class="field-label">Fabricante</label><input id="mqFab" value="' + v('fabricante') + '"></div>'
+    + '<div class="field"><label class="field-label">Modelo</label><input id="mqMod" value="' + v('modelo') + '"></div></div>'
+    + '<div class="field-row"><div class="field"><label class="field-label">Nº de série</label><input id="mqSerie" value="' + v('serie') + '"></div>'
+    + '<div class="field"><label class="field-label">Instalada em</label><input type="date" id="mqInst" value="' + v('instaladaEm') + '"></div></div>'
+    + '<div class="field"><label class="field-label">Situação</label><select id="mqSit">'
+    + Object.keys(MAQ_SITUACOES).map(k => '<option value="' + k + '"' + (((m && m.situacao) || 'ativa') === k ? ' selected' : '') + '>' + MAQ_SITUACOES[k] + '</option>').join('') + '</select>'
+    + '<div class="maq-dica">Máquina que saiu de uso fica como Desativada: o histórico dela continua guardado.</div></div>'
+    + '<div class="field"><label class="field-label">Observações</label><textarea id="mqObs" rows="3">' + v('obs') + '</textarea></div>'
+    + '<div class="btn-row"><button class="btn btn-secondary" onclick="' + (id ? "maqAbrir('" + id + "')" : 'maqFechar()') + '">Cancelar</button>'
+    + '<button class="btn btn-primary" id="mqSalvarBt" onclick="maqSalvar(\'' + (id || '') + '\')">Salvar</button></div></div>';
+  maqJanela(h);
+  setTimeout(() => { const e = document.getElementById('mqNome'); if (e && !id) e.focus(); }, 50);
+}
+window.maqSalvar = function (id) {
+  const g = x => (document.getElementById(x).value || '').trim();
+  const dados = { nome: g('mqNome'), codigo: g('mqCod'), setor: g('mqSetor'), fabricante: g('mqFab'), modelo: g('mqMod'),
+                  serie: g('mqSerie'), instaladaEm: g('mqInst'), situacao: g('mqSit') || 'ativa', obs: g('mqObs') };
+  if (!dados.nome) { alert('Informe o nome da máquina.'); return; }
+  if (!dados.setor) { alert('Escolha o setor.'); return; }
+  if (dados.codigo) {
+    const dup = maquinas.find(m => m.id !== id && maqNorm(m.codigo).trim() === maqNorm(dados.codigo).trim());
+    if (dup && !confirm('O código "' + dados.codigo + '" já está em "' + dup.nome + '". Salvar mesmo assim?')) return;
+  }
+  const bt = document.getElementById('mqSalvarBt'); if (bt) { bt.disabled = true; bt.textContent = 'Salvando…'; }
+  dados.atualizadoEm = new Date().toISOString(); dados.atualizadoPor = maqQuem();
+  let p;
+  if (id) p = updateDoc(doc(db, 'maquinas', id), dados).then(() => id);
+  else {
+    dados.planos = []; dados.criadoEm = dados.atualizadoEm; dados.criadoPor = dados.atualizadoPor;
+    p = addDoc(collection(db, 'maquinas'), dados).then(r => r.id);
+  }
+  p.then(nid => { maqAbrir(nid); })
+   .catch(e => {
+     console.error('maquinas/salvar:', e);
+     alert('Não foi possível salvar a máquina: ' + (e.code || e.message));
+     if (bt) { bt.disabled = false; bt.textContent = 'Salvar'; }
+   });
+};
+
+/* ---- planos ---- */
+window.maqPlanoForm = function (mid, pid) {
+  const m = maqAchar(mid); if (!m) return;
+  const p = pid ? (m.planos || []).find(x => x.id === pid) : null;
+  if (pid && !p) return;
+  const v = k => maqEsc((p && p[k] != null) ? p[k] : '');
+  let h = maqCabecalho(maqEsc(m.nome), pid ? 'Editar plano' : 'Novo plano de preventiva', "maqAbrir('" + mid + "')");
+  h += '<div class="modal-body">'
+    + '<div class="field"><label class="field-label">O que fazer *</label><input id="plDesc" value="' + v('descricao') + '" placeholder="Ex.: Lubrificar correntes e rolamentos"></div>'
+    + '<div class="field-row"><div class="field"><label class="field-label">A cada *</label><input type="number" min="1" step="1" id="plN" value="' + (p ? v('n') : '') + '" placeholder="Ex.: 15"></div>'
+    + '<div class="field"><label class="field-label">Unidade</label><select id="plUn">'
+    + [['dias', 'Dias'], ['semanas', 'Semanas'], ['meses', 'Meses']].map(u => '<option value="' + u[0] + '"' + ((p ? p.unidade : 'dias') === u[0] ? ' selected' : '') + '>' + u[1] + '</option>').join('')
+    + '</select></div></div>'
+    + '<div class="field"><label class="field-label">Última vez que foi feita</label><input type="date" id="plUlt" value="' + v('ultimaEm') + '" max="' + maqHojeISO() + '">'
+    + '<div class="maq-dica">Deixe vazio se nunca foi feita: o plano aparece como "Sem registro" até a primeira execução. Depois, esta data se atualiza sozinha a cada ✓ Feita.</div></div>'
+    + '<div class="field"><label class="field-label">Instruções (opcional)</label><textarea id="plInst" rows="3" placeholder="Passo a passo, material, cuidados…">' + v('instrucoes') + '</textarea></div>'
+    + '<div class="btn-row">'
+    + (pid ? '<button class="btn btn-secondary" onclick="maqPlanoRemover(\'' + mid + '\',\'' + pid + '\')">Remover plano</button>' : '<button class="btn btn-secondary" onclick="maqAbrir(\'' + mid + '\')">Cancelar</button>')
+    + '<button class="btn btn-primary" id="plSalvarBt" onclick="maqPlanoSalvar(\'' + mid + '\',\'' + (pid || '') + '\')">Salvar</button></div></div>';
+  maqJanela(h);
+};
+function maqGravaPlanos(mid, planos) {
+  return updateDoc(doc(db, 'maquinas', mid), { planos: planos, atualizadoEm: new Date().toISOString(), atualizadoPor: maqQuem() });
+}
+window.maqPlanoSalvar = function (mid, pid) {
+  const m = maqAchar(mid); if (!m) return;
+  const desc = (document.getElementById('plDesc').value || '').trim();
+  const n = parseInt(document.getElementById('plN').value, 10);
+  const un = document.getElementById('plUn').value;
+  const ult = document.getElementById('plUlt').value || '';
+  const inst = (document.getElementById('plInst').value || '').trim();
+  if (!desc) { alert('Descreva o que deve ser feito.'); return; }
+  if (!(n > 0)) { alert('Informe de quanto em quanto tempo (número maior que zero).'); return; }
+  if (ult && ult > maqHojeISO()) { alert('A última execução não pode ser no futuro.'); return; }
+  const planos = (m.planos || []).map(x => Object.assign({}, x));
+  if (pid) {
+    const p = planos.find(x => x.id === pid); if (!p) return;
+    Object.assign(p, { descricao: desc, n: n, unidade: un, ultimaEm: ult, instrucoes: inst });
+  } else {
+    planos.push({ id: 'p' + Date.now().toString(36), descricao: desc, n: n, unidade: un, ultimaEm: ult, instrucoes: inst, ativo: true, criadoEm: new Date().toISOString() });
+  }
+  const bt = document.getElementById('plSalvarBt'); if (bt) { bt.disabled = true; bt.textContent = 'Salvando…'; }
+  maqGravaPlanos(mid, planos).then(() => maqAbrir(mid)).catch(e => {
+    console.error('maquinas/plano:', e);
+    alert('Não foi possível salvar o plano: ' + (e.code || e.message));
+    if (bt) { bt.disabled = false; bt.textContent = 'Salvar'; }
+  });
+};
+/* remover tira o plano da agenda; as execuções já registradas ficam no histórico */
+window.maqPlanoRemover = function (mid, pid) {
+  const m = maqAchar(mid); if (!m) return;
+  const p = (m.planos || []).find(x => x.id === pid); if (!p) return;
+  if (!confirm('Remover o plano "' + p.descricao + '"?\n\nAs execuções já registradas continuam no histórico.')) return;
+  maqGravaPlanos(mid, (m.planos || []).filter(x => x.id !== pid)).then(() => maqAbrir(mid))
+    .catch(e => { console.error('maquinas/plano remover:', e); alert('Não foi possível remover: ' + (e.code || e.message)); });
+};
+
+/* ---- registrar manutenção ---- */
+window.maqRegistrar = function (mid, tipo, pid) {
+  const m = maqAchar(mid); if (!m) return;
+  maqState.aberta = mid;
+  const prev = tipo === 'preventiva';
+  const planos = maqPlanosAtivos(m);
+  let h = maqCabecalho(maqEsc(m.nome), prev ? 'Registrar preventiva' : 'Registrar corretiva', "maqAbrir('" + mid + "')");
+  h += '<div class="modal-body">';
+  if (prev) {
+    h += '<div class="field"><label class="field-label">Plano *</label><select id="rgPlano">'
+      + planos.map(p => '<option value="' + p.id + '"' + (p.id === pid ? ' selected' : '') + '>' + maqEsc(p.descricao) + ' (' + maqEsc(maqPeriodoTxt(p)) + ')</option>').join('')
+      + '</select></div>';
+  }
+  h += '<div class="field-row"><div class="field"><label class="field-label">Data *</label><input type="date" id="rgData" value="' + maqHojeISO() + '" max="' + maqHojeISO() + '"></div>'
+    + '<div class="field"><label class="field-label">Responsável</label><select id="rgResp">' + maqRespOpts('') + '</select></div></div>'
+    + '<div class="field"><label class="field-label">' + (prev ? 'Observação (opcional)' : 'O que aconteceu e o que foi feito *') + '</label>'
+    + '<textarea id="rgDesc" rows="3" placeholder="' + (prev ? 'Ex.: trocada uma corrente com folga' : 'Ex.: motor não partia — trocado o capacitor') + '"></textarea></div>'
+    + '<div class="field-row"><div class="field"><label class="field-label">Horas de máquina parada</label><input type="number" min="0" step="0.5" id="rgHoras" placeholder="0"></div>'
+    + '<div class="field"><label class="field-label">Custo (R$)</label><input type="number" min="0" step="0.01" id="rgCusto" placeholder="0,00"></div></div>'
+    + '<div class="field"><label class="field-label">Peças usadas (opcional)</label><input id="rgPecas" placeholder="Ex.: 1 rolamento 6205, 2 m de corrente"></div>'
+    + (!prev && (m.situacao || 'ativa') === 'parada' ? '<label style="display:flex;gap:8px;align-items:center;font-size:13px;margin:-4px 0 14px"><input type="checkbox" id="rgVoltou" checked> Máquina voltou a funcionar (situação volta para Ativa)</label>' : '')
+    + (prev ? '<div class="maq-dica">A próxima data do plano passa a contar a partir da data informada aqui.</div>' : '')
+    + '<div class="btn-row"><button class="btn btn-secondary" onclick="maqAbrir(\'' + mid + '\')">Cancelar</button>'
+    + '<button class="btn btn-primary" id="rgSalvarBt" onclick="maqRegistrarSalvar(\'' + mid + '\',\'' + tipo + '\')">Registrar</button></div></div>';
+  maqJanela(h);
+};
+window.maqRegistrarSalvar = function (mid, tipo) {
+  const m = maqAchar(mid); if (!m) return;
+  const prev = tipo === 'preventiva';
+  const data = document.getElementById('rgData').value;
+  const desc = (document.getElementById('rgDesc').value || '').trim();
+  const pid = prev ? document.getElementById('rgPlano').value : '';
+  const plano = prev ? (m.planos || []).find(x => x.id === pid) : null;
+  if (!data) { alert('Informe a data.'); return; }
+  if (data > maqHojeISO()) { alert('A data não pode ser no futuro.'); return; }
+  if (prev && !plano) { alert('Escolha o plano.'); return; }
+  if (!prev && !desc) { alert('Descreva o que aconteceu e o que foi feito.'); return; }
+  const reg = {
+    maquinaId: mid, maquinaNome: m.nome || '', setor: m.setor || '', tipo: tipo,
+    planoId: prev ? pid : '', planoDesc: prev ? (plano.descricao || '') : '',
+    data: data, descricao: desc, responsavel: document.getElementById('rgResp').value || '',
+    paradaHoras: maqNum(document.getElementById('rgHoras').value), custo: maqNum(document.getElementById('rgCusto').value),
+    pecas: (document.getElementById('rgPecas').value || '').trim(),
+    registradoEm: new Date().toISOString(), registradoPor: maqQuem()
+  };
+  const bt = document.getElementById('rgSalvarBt'); if (bt) { bt.disabled = true; bt.textContent = 'Registrando…'; }
+  /* preventiva: o registro e a nova "última vez" do plano vão juntos, ou nenhum dos dois */
+  const lote = writeBatch(db);
+  lote.set(doc(collection(db, 'manutencoes')), reg);
+  const mud = {};
+  if (prev) {
+    const planos = (m.planos || []).map(x => Object.assign({}, x));
+    const p = planos.find(x => x.id === pid);
+    if (!p.ultimaEm || data > p.ultimaEm) p.ultimaEm = data;   /* lançar uma antiga não "desvence" a atual */
+    mud.planos = planos;
+  }
+  const volta = document.getElementById('rgVoltou');
+  if (volta && volta.checked) mud.situacao = 'ativa';
+  if (Object.keys(mud).length) {
+    mud.atualizadoEm = new Date().toISOString(); mud.atualizadoPor = maqQuem();
+    lote.update(doc(db, 'maquinas', mid), mud);
+  }
+  lote.commit().then(() => maqAbrir(mid)).catch(e => {
+    console.error('manutencoes/registrar:', e);
+    alert('Não foi possível registrar: ' + (e.code || e.message));
+    if (bt) { bt.disabled = false; bt.textContent = 'Registrar'; }
+  });
+};
+/* Apagar é para lançamento errado. A data do plano NÃO volta sozinha: se era a
+   última execução, confira o plano em Editar. */
+window.maqApagarRegistro = function (rid) {
+  const x = manutencoes.find(r => r.id === rid); if (!x) return;
+  if (!confirm('Apagar este registro de ' + (x.tipo === 'preventiva' ? 'preventiva' : 'corretiva') + ' de ' + maqBR(x.data) + '?'
+    + (x.tipo === 'preventiva' ? '\n\nA data de "última vez" do plano não volta sozinha — confira em Editar plano.' : ''))) return;
+  deleteDoc(doc(db, 'manutencoes', rid)).catch(e => { console.error('manutencoes/apagar:', e); alert('Não foi possível apagar: ' + (e.code || e.message)); });
+};
+
+/* ---- vínculo com chamados ---- */
+function maqOpcoes(sel) {
+  const porSetor = {};
+  maquinas.filter(m => (m.situacao || 'ativa') !== 'desativada' || m.id === sel).forEach(m => {
+    const s = m.setor || 'OUTRO'; (porSetor[s] = porSetor[s] || []).push(m);
+  });
+  return Object.keys(porSetor).sort().map(s => '<optgroup label="' + maqEsc(s) + '">'
+    + porSetor[s].sort((a, b) => String(a.nome).localeCompare(String(b.nome), 'pt-BR')).map(m =>
+      '<option value="' + m.id + '"' + (m.id === sel ? ' selected' : '') + '>' + maqEsc(m.nome) + (m.codigo ? ' (' + maqEsc(m.codigo) + ')' : '') + '</option>').join('')
+    + '</optgroup>').join('');
+}
+function maqPintaSelectNovo() {
+  const el = document.getElementById('newMaq'); if (!el) return;
+  const v = el.value;
+  el.innerHTML = '<option value="">— nenhuma —</option>' + maqOpcoes(v);
+  el.value = v;
+}
+/* escolher a máquina já acerta o setor da demanda */
+window.maqNovaDemandaEscolheu = function (id) {
+  const m = maqAchar(id); if (!m || !m.setor) return;
+  const sel = document.getElementById('newLocal'); if (!sel) return;
+  for (let i = 0; i < sel.options.length; i++) if (normSetor(sel.options[i].value) === normSetor(m.setor)) { sel.selectedIndex = i; break; }
+};
+function maqBlocoChamado(o) {
+  const sid = String(o.id).replace(/[^a-zA-Z0-9]/g, '_');
+  const tem = o.maquinaId && maqAchar(o.maquinaId);
+  return '<div class="detail-section" style="padding-top:12px;padding-bottom:12px">'
+    + '<div class="detail-label">Máquina</div>'
+    + '<div class="maq-vinc" id="maqVincVer_' + sid + '">'
+    + (o.maquinaId
+        ? '<span style="font-size:14px">' + maqEsc(tem ? maqNomeDe(o.maquinaId) : (o.maquinaNome || 'máquina removida')) + '</span>'
+          + (tem ? '<button class="maq-bt" onclick="maqAbrirDoChamado(\'' + o.maquinaId + '\')">Ver máquina</button>' : '')
+        : '<span style="font-size:13px;color:var(--ink-mute)">Nenhuma máquina vinculada</span>')
+    + '<button class="maq-bt" onclick="maqVincAbrir(\'' + sid + '\')">' + (o.maquinaId ? 'Alterar' : 'Vincular') + '</button></div>'
+    + '<div class="maq-vinc" id="maqVincEd_' + sid + '" style="display:none">'
+    + '<select id="maqVincSel_' + sid + '"><option value="">— nenhuma —</option>' + maqOpcoes(o.maquinaId) + '</select>'
+    + '<button class="maq-bt pri" onclick="maqVincSalvar(\'' + maqEsc(o.id) + '\',\'' + sid + '\')">OK</button></div>'
+    + '</div>';
+}
+window.maqVincAbrir = function (sid) {
+  document.getElementById('maqVincVer_' + sid).style.display = 'none';
+  document.getElementById('maqVincEd_' + sid).style.display = 'flex';
+};
+window.maqAbrirDoChamado = function (mid) {
+  document.querySelectorAll('.modal-backdrop').forEach(x => x.classList.remove('open'));
+  maqAbrir(mid);
+};
+window.maqVincSalvar = function (oid, sid) {
+  const o = orders.find(x => x.id === oid); if (!o || !o.firestoreId) return;
+  const mid = document.getElementById('maqVincSel_' + sid).value || '';
+  const nome = mid ? maqNomeDe(mid) : '';
+  updateDoc(doc(db, 'chamados', o.firestoreId), { maquinaId: mid, maquinaNome: nome })
+    .then(() => { o.maquinaId = mid; o.maquinaNome = nome; openDetail(oid); })
+    .catch(e => { console.error('chamados/maquina:', e); alert('Não foi possível vincular a máquina: ' + (e.code || e.message)); });
+};
+
 window.switchView = function(view) {
   document.querySelectorAll('.nav-item').forEach(x => x.classList.remove('active'));
-  document.body.classList.remove('kanban-mode', 'agenda-mode');
+  document.body.classList.remove('kanban-mode', 'agenda-mode', 'maq-mode');
   document.getElementById('kanbanView').classList.remove('active');
   document.getElementById('agendaView').classList.remove('active');
+  document.getElementById('maqView').classList.remove('active');
+  if (view === 'maq') {
+    document.body.classList.add('maq-mode');
+    document.getElementById('maqView').classList.add('active');
+    document.getElementById('navMaq').classList.add('active');
+    maqRender();
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    return;
+  }
   
   if (view === 'kanban') {
     document.body.classList.add('kanban-mode');
@@ -4543,6 +5258,7 @@ window.switchView = function(view) {
 };
 
 document.getElementById('navAgenda').addEventListener('click', () => switchView('agenda'));
+document.getElementById('navMaq').addEventListener('click', () => switchView('maq'));
 // Re-bind home e kanban (foram setados antes)
 document.getElementById('navHome').addEventListener('click', () => switchView('home'));
 document.getElementById('navKanban').addEventListener('click', () => switchView('kanban'));
