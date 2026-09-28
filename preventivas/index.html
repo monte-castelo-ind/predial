@@ -261,6 +261,9 @@ td.wide{max-width:380px}
 .flin-i{flex:1;min-width:0;font-size:13px;line-height:1.45;overflow-wrap:anywhere}
 .flin-a{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
 .tiposel{display:flex;flex-direction:column;gap:8px}
+label.chk{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--text);font-weight:600;margin:0;cursor:pointer}
+label.chk input{width:auto;accent-color:var(--primary)}
+.prevbox{margin-top:10px;padding:12px;border:1px solid var(--border);border-radius:10px;background:var(--card-2)}
 .tiposel label{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);font-weight:500;margin:0;cursor:pointer}
 .tiposel input{width:auto}
 @media(max-width:900px){
@@ -412,7 +415,9 @@ import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, setPe
    Periodicidade só por tempo. A próxima data conta da ÚLTIMA EXECUÇÃO, não
    da data prevista: preventiva feita com atraso não deixa a seguinte já
    vencida. Vencida é só alerta aqui — não abre chamado.
-   Máquina não se apaga, se desativa: o histórico dela continua. */
+   Máquina que sai de uso se desativa. Excluir existe, mas só para o admin
+   (cadastro errado ou duplicado): as manutenções já registradas continuam
+   na lista, com o nome da máquina gravado nelas. */
 const configComodato = { apiKey:"AIzaSyCH_t074MvkJn-qVMvCtLfEMaQHf_e_d7M", authDomain:"manutencao-comodato.firebaseapp.com", projectId:"manutencao-comodato", storageBucket:"manutencao-comodato.firebasestorage.app", messagingSenderId:"89709396101", appId:"1:89709396101:web:22ee225ffa806e07a269ec" };
 const appC = initializeApp(configComodato);
 const dbC = getFirestore(appC);
@@ -816,8 +821,19 @@ window.abrirMaquinaForm=function(id){
     +'<div class="fld"><label>Situação</label><select id="f-sit">'+Object.keys(SITUACOES).map(function(k){ return '<option value="'+k+'"'+(((m&&m.situacao)||'ativa')===k?' selected':'')+'>'+SITUACOES[k]+'</option>'; }).join('')+'</select>'
     +'<div class="fhint">Saiu de uso? Marque Desativada — o histórico continua guardado.</div></div>'
     +'<div class="fld" style="grid-column:1/-1"><label>Observações</label><textarea id="f-obs" rows="3">'+v('obs')+'</textarea></div>'
+    +(!id ? '<div class="fld" style="grid-column:1/-1">'
+      +'<label class="chk"><input type="checkbox" id="f-prev" onchange="document.getElementById(\'f-prevbox\').style.display=this.checked?\'grid\':\'none\'"> Precisa de manutenção preventiva</label>'
+      +'<div class="fgrid prevbox" id="f-prevbox" style="display:none">'
+      +'<div class="fld" style="grid-column:1/-1"><label>O que fazer</label><input id="f-pdesc" placeholder="Ex.: Lubrificação e revisão geral"></div>'
+      +'<div class="fld"><label>A cada *</label><input type="number" min="1" step="1" id="f-pn" placeholder="Ex.: 30"></div>'
+      +'<div class="fld"><label>Unidade</label><select id="f-pun"><option value="dias">Dias</option><option value="semanas">Semanas</option><option value="meses">Meses</option></select></div>'
+      +'<div class="fld" style="grid-column:1/-1"><label>Última vez que foi feita</label><input type="date" id="f-pult" max="'+hojeISO()+'" style="width:auto">'
+      +'<div class="fhint">Vazio = nunca foi feita: aparece como "Sem registro" na agenda até o primeiro ✓ Feita.</div></div>'
+      +'<div class="fhint" style="grid-column:1/-1">Precisa de mais de um plano (ex.: um mensal e um semestral)? Acrescente depois, na ficha da máquina.</div>'
+      +'</div></div>' : '')
     +'</div>';
   modal({ titulo:id?'Editar máquina':'Nova máquina', sub:id?esc(m.nome):'Cadastro', body:b, ok:'Salvar', voltar:id?"abrirMaquina('"+id+"')":'',
+    extra:(id && currentRole==='admin')?'<button class="btn btn-sm btn-danger" onclick="excluirMaquina(\''+id+'\')" style="margin-right:auto">Excluir máquina</button>':'',
     onOk:function(bt){
       var d={ nome:val('f-nome'), codigo:val('f-cod'), setor:val('f-setor'), fabricante:val('f-fab'), modelo:val('f-mod'),
               serie:val('f-serie'), instaladaEm:val('f-inst'), situacao:val('f-sit')||'ativa', obs:val('f-obs') };
@@ -827,15 +843,38 @@ window.abrirMaquinaForm=function(id){
         var dup=maquinas.filter(function(x){ return x.firestoreId!==id && normSA(x.codigo)===normSA(d.codigo); })[0];
         if(dup && !confirm('O código "'+d.codigo+'" já está em "'+dup.nome+'". Salvar mesmo assim?')) return;
       }
+      /* preventiva marcada no cadastro vira o primeiro plano da máquina */
+      var pv=null, cx=document.getElementById('f-prev');
+      if(!id && cx && cx.checked){
+        var pn=parseInt(val('f-pn'),10), pult=val('f-pult');
+        if(!(pn>0)){ alert('Informe de quanto em quanto tempo a preventiva deve ser feita.'); return; }
+        if(pult && pult>hojeISO()){ alert('A última execução não pode ser no futuro.'); return; }
+        pv={ id:'p'+Date.now().toString(36), descricao:val('f-pdesc')||'Preventiva geral', n:pn, unidade:val('f-pun')||'dias',
+             ultimaEm:pult, instrucoes:'', ativo:true, criadoEm:agora() };
+      }
       d.atualizadoEm=agora(); d.atualizadoPor=sessaoEmail;
       ocupado(bt,'Salvando…');
       var p;
       if(id) p=updateDoc(doc(dbC,'prevMaquinas',id), d).then(function(){ return id; });
       else { d.planos=[]; d.criadoEm=d.atualizadoEm; d.criadoPor=sessaoEmail;
+             if(pv) d.planos.push(pv);
              p=addDoc(collection(dbC,'prevMaquinas'), d).then(function(r){ return r.id; }); }
       p.then(function(nid){ abrirMaquina(nid); })
        .catch(function(e){ console.error('prevMaquinas/salvar:',e); alert('Não foi possível salvar a máquina: '+(e.code||e.message)); livre(bt); });
     } });
+};
+
+/* excluir: só admin. O histórico fica — cada registro já guarda o nome da máquina */
+window.excluirMaquina=function(id){
+  if(currentRole!=='admin') return;
+  var m=maqPorId(id); if(!m) return;
+  var n=manutencoes.filter(function(x){ return x.maquinaId===id; }).length;
+  if(!confirm('Excluir a máquina "'+nomeMaq(m)+'"?\n\nEla sai do cadastro e da agenda de preventivas, e isso não se desfaz.'
+     +(n?'\nAs '+n+' manutenç'+(n===1?'ão registrada continua':'ões registradas continuam')+' na lista de Manutenções, com o nome da máquina.':'')
+     +'\n\nSe ela só saiu de uso, prefira marcar a situação como Desativada.')) return;
+  deleteDoc(doc(dbC,'prevMaquinas',id))
+    .then(function(){ fecharModal(); })
+    .catch(function(e){ console.error('prevMaquinas/excluir:',e); alert('Não foi possível excluir: '+(e.code||e.message)); });
 };
 
 /* ---- planos ---- */
