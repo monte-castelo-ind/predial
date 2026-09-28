@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>Preventivas · Monte Castelo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -243,9 +243,10 @@ td.mut,.mut{color:var(--muted)}
 tr.clic{cursor:pointer}
 tr.desat td{opacity:.55}
 td.wide{max-width:380px}
-/* tipo da manutenção: rótulo sempre escrito; azul = informativo, a cor da marca = corretiva */
+/* tipo da manutenção: rótulo sempre escrito. Azul = informativo; corretiva neutra —
+   verde, âmbar, vermelho e roxo já têm significado nos apps */
 .p-prev{color:var(--blue);border-color:var(--blue);background:rgba(75,123,236,.08)}
-.p-corr{color:var(--primary);border-color:var(--primary);background:transparent}
+.p-corr{color:var(--text);border-color:var(--muted);background:rgba(128,128,128,.12)}
 .mn-resumo{font-size:12.5px;color:var(--muted);margin:-2px 0 11px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .mn-resumo b{color:var(--text)}
 .modal.largo{max-width:760px}
@@ -261,6 +262,81 @@ td.wide{max-width:380px}
 .flin-i{flex:1;min-width:0;font-size:13px;line-height:1.45;overflow-wrap:anywhere}
 .flin-a{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
 .tiposel{display:flex;flex-direction:column;gap:8px}
+
+/* ===== CELULAR =====
+   até 760px: tabelas viram cartões e os filtros ocupam a linha inteira.
+   até 600px: menu vira barra de abas embaixo e as janelas sobem de baixo —
+   mesmo padrão do app de Autorizações. */
+#topo-m{display:none}
+.lista-m{display:flex;flex-direction:column;gap:9px}
+.cm{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:13px 14px;box-shadow:var(--shadow);
+    cursor:pointer;display:flex;flex-direction:column;gap:5px;min-width:0}
+.cm:active{background:var(--card-2)}
+.cm.st-vencida{border-left:3px solid var(--red)}
+.cm.st-vence,.cm.st-nunca{border-left:3px solid var(--amber)}
+.cm.desat{opacity:.55}
+.cm-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.cm-top .pill{flex:0 0 auto}
+.cm-t{font-size:15px;font-weight:700;line-height:1.3;overflow-wrap:anywhere}
+.cm-s{font-size:12.5px;color:var(--muted);overflow-wrap:anywhere;line-height:1.4}
+.cm-d{font-size:13.5px;line-height:1.4;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.cm-r{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:4px}
+.cm-r .btn{min-height:42px;padding:9px 16px;font-size:14px;white-space:nowrap;flex:0 0 auto}
+.tscroll.cartoes{overflow:visible;max-height:none}
+.tw.cartoes{background:transparent;border:none;box-shadow:none;overflow:visible}
+@media(max-width:760px){
+  /* filtros dois por linha; busca e botão na linha inteira */
+  .tools{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .tools input,.tools select{min-width:0;width:100%}
+  .tools input[type=text],.tools .btn{grid-column:1/-1}
+  .tools .btn{margin-left:0!important;min-height:46px;font-size:14.5px}
+  .fgrid{grid-template-columns:1fr 1fr;gap:11px}
+  .ficha{grid-template-columns:1fr 1fr}
+  input,select,textarea{font-size:16px}          /* abaixo de 16px o iPhone dá zoom ao tocar no campo */
+  .kpis{grid-template-columns:1fr 1fr;gap:9px}
+  .kpis .card{padding:12px}
+  .kval{font-size:22px}
+  .khint{font-size:11px}
+  .mn-resumo{font-size:12px}
+  .sect{margin-top:18px}
+}
+@media(max-width:600px){
+  .side,.side:hover,.side.pin{position:fixed;left:0;right:0;bottom:0;top:auto;width:auto;height:auto;z-index:800;
+      flex-direction:row;overflow:visible;gap:2px;justify-content:space-around;align-items:stretch;
+      padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px));
+      border-right:none;border-top:1px solid var(--border);background:var(--sidebar);box-shadow:none}
+  .side-logo,.side-foot,.pinbtn{display:none!important}
+  .navbtn{flex:1 1 0;min-width:0;width:auto;flex-direction:column;justify-content:center;gap:2px;min-height:52px;
+          padding:4px 2px;font-size:11px;border-radius:10px;white-space:nowrap}
+  .navbtn .side-ico{font-size:19px;width:auto;flex:none}
+  .navbtn.on{background:transparent;color:var(--primary)}
+  .side .navbtn .navcount,.side:not(:hover):not(.pin) .navbtn .navcount{position:absolute;top:3px;left:calc(50% + 6px);margin:0;
+          min-width:16px;height:16px;line-height:16px;font-size:9.5px;padding:0 4px}
+  .shell>main,.side.pin ~ main{margin-left:0}
+  main{padding:calc(10px + env(safe-area-inset-top,0px)) 14px calc(88px + env(safe-area-inset-bottom,0px))}
+  #topo-m{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+  #topo-m .tm-marca{flex:1;font-size:11.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #topo-m .btn{min-height:36px}
+  .topbar{margin-bottom:14px}
+  h1{font-size:25px}
+  #freshness{display:none}
+
+  .mask{align-items:flex-end;padding:0;z-index:900}      /* acima da barra de abas (800) */
+  .modal,.modal.largo{max-width:none;width:100%;max-height:94vh;border-radius:18px 18px 0 0;border-bottom:none}
+  .mhead{padding:14px 16px}
+  .mbody{padding:14px 16px}
+  .mfoot{padding:12px 14px calc(12px + env(safe-area-inset-bottom,0px));gap:8px}
+  .mfoot .btn{flex:1 1 calc(50% - 4px);min-height:46px;font-size:14.5px;margin:0!important}
+  .mfoot .btn:not(.btn-ghost):not(.btn-danger){flex-basis:100%;order:-1;min-height:52px;font-size:16px}
+  .mfoot .btn-danger{flex-basis:100%;order:3}
+  .ficha{gap:11px 14px}
+  .flin-a .btn{min-height:40px;flex:1 1 auto}
+  .fsec .btn{min-height:36px}
+
+  /* o botão "⌂ Apps" do app instalado sobe para não cobrir a barra de abas */
+  #mc-voltar-hub{bottom:calc(76px + env(safe-area-inset-bottom,0px))!important}
+}
+
 label.chk{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--text);font-weight:600;margin:0;cursor:pointer}
 label.chk input{width:auto;accent-color:var(--primary)}
 .prevbox{margin-top:10px;padding:12px;border:1px solid var(--border);border-radius:10px;background:var(--card-2)}
@@ -333,6 +409,11 @@ label.chk input{width:auto;accent-color:var(--primary)}
   </nav>
 
   <main>
+    <div id="topo-m">
+      <span class="tm-marca">Monte Castelo · Preventivas</span>
+      <button class="btn btn-sm btn-ghost" onclick="toggleTema()" title="Tema">◐</button>
+      <button class="btn btn-sm btn-ghost" onclick="sair()">Sair</button>
+    </div>
     <div class="topbar">
       <div><h1 id="ptitle">Preventivas</h1><div class="h1sub" id="psub">—</div></div>
       <div style="display:flex;align-items:center;gap:11px;flex-wrap:wrap">
@@ -349,7 +430,7 @@ label.chk input{width:auto;accent-color:var(--primary)}
         <input type="text" id="pv-busca" placeholder="Buscar máquina ou plano" oninput="render()">
         <select id="pv-setor" onchange="render()"></select>
         <select id="pv-sit" onchange="render()">
-          <option value="fazer">Para fazer (vencidas, sem registro e próximos 7 dias)</option>
+          <option value="fazer" title="Vencidas, sem registro e próximos 7 dias">Para fazer</option>
           <option value="todos">Todos os planos</option>
         </select>
       </div>
@@ -366,7 +447,7 @@ label.chk input{width:auto;accent-color:var(--primary)}
           <option value="tudo">Tudo</option>
         </select>
         <select id="mn-tipo" onchange="render()">
-          <option value="">Preventivas e corretivas</option>
+          <option value="">Todos os tipos</option>
           <option value="preventiva">Só preventivas</option>
           <option value="corretiva">Só corretivas</option>
         </select>
@@ -554,7 +635,16 @@ window.ordCol=function(tab,k){
 };
 
 /* ============ RENDER ============ */
+/* tela estreita: cartão em vez de tabela. Redesenha ao cruzar a largura */
+function modoCel(){ return window.matchMedia && window.matchMedia('(max-width:760px)').matches; }
+var _eraCel=null;
+window.addEventListener('resize', function(){ var c=modoCel(); if(c!==_eraCel){ _eraCel=c; render(); } });
+function caixa(tb, cel){
+  tb.classList.toggle('cartoes', !!cel);
+  if(tb.parentNode) tb.parentNode.classList.toggle('cartoes', !!cel);
+}
 function render(){
+  _eraCel=modoCel();
   selSetores('pv-setor','Todos os setores'); selSetores('mn-setor','Todos os setores'); selSetores('mq-setor','Todos os setores');
   pintarErros();
   var fr=document.getElementById('freshness');
@@ -623,6 +713,20 @@ function renderPrev(){
   if(!maquinas.length){ tb.innerHTML='<div class="empty">Nenhuma máquina cadastrada ainda.'+(podeLancar?'<br><br><button class="btn btn-sm" onclick="nav(\'maq\');abrirMaquinaForm(\'\')">+ Cadastrar a primeira máquina</button>':'')+'</div>'; return; }
   if(!lista.length){ tb.innerHTML='<div class="empty">'+(sit==='fazer'?'Nada vencido nem para os próximos '+AVISO_DIAS+' dias. 👍':'Nenhum plano neste filtro.')+'</div>'; return; }
   lista=ordenar(lista,'pv',function(x,k){ return x[k]; });
+  caixa(tb, modoCel());
+  if(modoCel()){
+    tb.innerHTML='<div class="lista-m">'+lista.map(function(x){
+      return '<div class="cm st-'+x.i.st+'" onclick="abrirMaquina(\''+x.m.firestoreId+'\')">'
+        +'<div class="cm-top"><span class="pill '+x.i.cls+'">'+esc(x.i.rot)+'</span>'+(x.m.situacao==='parada'?'<span class="pill p-bad">Máquina parada</span>':'')+'</div>'
+        +'<div class="cm-t">'+esc(x.maquina)+(x.m.codigo?' <span class="cod">'+esc(x.m.codigo)+'</span>':'')+'</div>'
+        +'<div class="cm-d">'+esc(x.plano)+'</div>'
+        +'<div class="cm-s">'+esc(x.setor)+' · '+esc(periodoTxt(x.p))+'</div>'
+        +'<div class="cm-r"><span class="cm-s">'+(x.ultima?'Última '+dataBR(x.ultima)+(x.proxima?' · próxima '+dataBR(x.proxima):''):'Nunca registrada')+'</span>'
+        +(podeLancar?'<button class="btn btn-sm" onclick="event.stopPropagation();abrirRegistro(\''+x.m.firestoreId+'\',\'preventiva\',\''+x.p.id+'\')">✓ Feita</button>':'')+'</div>'
+        +'</div>';
+    }).join('')+'</div>';
+    return;
+  }
   tb.innerHTML='<table>'+thead('pv',[{t:'Situação',k:'ordem'},{t:'Máquina',k:'maquina'},{t:'Setor',k:'setor'},{t:'Plano',k:'plano'},{t:'Periodicidade'},{t:'Última',k:'ultima'},{t:'Próxima',k:'proxima'},{t:''}])
     +'<tbody>'+lista.map(function(x){
       return '<tr class="clic" onclick="abrirMaquina(\''+x.m.firestoreId+'\')">'
@@ -678,6 +782,20 @@ function renderManut(){
     if(k==='custo') return num(x.custo);
     return x[k]||'';
   });
+  caixa(tb, modoCel());
+  if(modoCel()){
+    tb.innerHTML='<div class="lista-m">'+lista.map(function(x){
+      var oq=x.tipo==='preventiva' ? (x.planoDesc||'Preventiva')+(x.descricao?' — '+x.descricao:'') : (x.descricao||'');
+      var ex=[]; if(x.responsavel) ex.push(esc(x.responsavel)); if(num(x.paradaHoras)) ex.push(fmtH(x.paradaHoras)+' h parada'); if(num(x.custo)) ex.push(fmtR$(x.custo));
+      return '<div class="cm" onclick="verRegistro(\''+x.firestoreId+'\')">'
+        +'<div class="cm-top">'+pillTipo(x.tipo)+'<span class="cm-s num">'+dataBR(x.data)+'</span></div>'
+        +'<div class="cm-t">'+esc(x.maquinaNome||'')+'</div>'
+        +'<div class="cm-d">'+esc(oq)+'</div>'
+        +'<div class="cm-s">'+esc(x.setor||'')+(ex.length?' · '+ex.join(' · '):'')+'</div>'
+        +'</div>';
+    }).join('')+'</div>';
+    return;
+  }
   tb.innerHTML='<table>'+thead('mn',[{t:'Data',k:'data'},{t:'Tipo',k:'tipo'},{t:'Máquina',k:'maquinaNome'},{t:'Setor',k:'setor'},{t:'O que foi feito',k:'o_que'},{t:'Responsável',k:'responsavel'},{t:'Parada',k:'horas',r:1},{t:'Custo',k:'custo',r:1}])
     +'<tbody>'+lista.map(function(x){
       var oq=x.tipo==='preventiva' ? (x.planoDesc||'Preventiva')+(x.descricao?' — '+x.descricao:'') : (x.descricao||'');
@@ -712,6 +830,19 @@ function renderMaq(){
     if(k==='ultima') return ultimaManut(m.firestoreId);
     return m[k]||'';
   });
+  caixa(tb, modoCel());
+  if(modoCel()){
+    tb.innerHTML='<div class="lista-m">'+lista.map(function(m){
+      var p=piorPlano(m), np=planosAtivos(m).length, u=ultimaManut(m.firestoreId), des=(m.situacao||'ativa')==='desativada';
+      return '<div class="cm'+(des?' desat':'')+'" onclick="abrirMaquina(\''+m.firestoreId+'\')">'
+        +'<div class="cm-top"><span class="cm-t">'+esc(m.nome||'')+'</span>'+pillSit(m.situacao)+'</div>'
+        +'<div class="cm-s">'+esc([m.codigo,m.setor].filter(Boolean).join(' · '))+([m.fabricante,m.modelo].filter(Boolean).length?' · '+esc([m.fabricante,m.modelo].filter(Boolean).join(' ')):'')+'</div>'
+        +'<div class="cm-r">'+(p?'<span class="pill '+p.cls+'">'+esc(p.rot)+'</span>':(des?'<span></span>':'<span class="pill p-mut">Sem plano</span>'))
+        +'<span class="cm-s">'+np+(np===1?' plano':' planos')+' · '+(u?'últ. '+dataBR(u):'sem manutenção')+'</span></div>'
+        +'</div>';
+    }).join('')+'</div>';
+    return;
+  }
   tb.innerHTML='<table>'+thead('mq',[{t:'Código',k:'codigo'},{t:'Máquina',k:'nome'},{t:'Setor',k:'setor'},{t:'Fabricante / modelo',k:'fabricante'},{t:'Situação',k:'situacao'},{t:'Planos',k:'planos',r:1},{t:'Preventiva',k:'prev'},{t:'Última manutenção',k:'ultima'}])
     +'<tbody>'+lista.map(function(m){
       var p=piorPlano(m), np=planosAtivos(m).length;
@@ -734,7 +865,7 @@ function modal(o){
     (o.ok?'<button class="btn btn-sm" id="modal-ok">'+o.ok+'</button>':'')+'</div></div></div>';
   if(o.ok) document.getElementById('modal-ok').onclick=function(){ o.onOk(this); };
   document.getElementById('mask').onclick=function(e){ if(e.target.id==='mask') fecharModal(); };
-  if(o.foco!==false) setTimeout(function(){ var f=document.querySelector('.mbody input:not([type=checkbox]),.mbody select'); if(f) f.focus(); },60);
+  if(o.foco!==false && !modoCel()) setTimeout(function(){ var f=document.querySelector('.mbody input:not([type=checkbox]),.mbody select'); if(f) f.focus(); },60);
 }
 window.fecharModal=function(){ document.getElementById('modal-host').innerHTML=''; fichaAberta=''; };
 function ocupado(b, txt){ if(b){ b.disabled=true; b.dataset.t=b.textContent; b.textContent=txt; } }
